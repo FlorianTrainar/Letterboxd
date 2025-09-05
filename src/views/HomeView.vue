@@ -1,18 +1,22 @@
 <script setup>
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import CoverPart from '@/components/CoverPart.vue'
 
 const movieList = ref([])
 
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
-const randomPage = Math.floor(Math.random() * 20) + 1
+const randomPage = Math.floor(Math.random() * 10) + 1
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get(`https://api.themoviedb.org/3/movie/popular`, {
+    const { data } = await axios.get(`https://api.themoviedb.org/3/discover/movie`, {
       params: {
         api_key: apiKey,
         language: 'fr-FR',
+        sort_by: 'vote_average.desc',
+        'vote_count.gte': 5000,
         include_adult: false,
         page: randomPage,
       },
@@ -33,26 +37,24 @@ onMounted(async () => {
 </script>
 <template>
   <main>
-    <div class="cover">
-      <img src="../assets/imgs/weapons-anatomy1-gmzt-videoSixteenByNine3000.webp" alt="" />
-      <div>
-        <h1>Track films you've watched.</h1>
-        <h1>Save those you want to see</h1>
-        <h1>Tell your friends what's good</h1>
-        <button>Get started - it's free!</button>
-        <p>The social netwok for film lovers. Also available on ...</p>
-      </div>
-    </div>
+    <CoverPart />
     <div class="wrapper">
       <section id="cardSection">
-        <div class="card" v-for="(movies, index) in movieList.slice(0, 6)" :key="movies">
-          <img
-            v-bind:src="`https://image.tmdb.org/t/p/w500${movies.poster_path}`"
-            :alt="movies.name"
-          />
-          <!-- <p>{{ movies.vote_average.toFixed(1) }}</p>
-          <p>{{ movies.vote_count }}</p> -->
-        </div>
+        <RouterLink
+          :to="{ name: 'movie', params: { id: movies.id } }"
+          v-for="(movies, index) in movieList.slice(0, 6)"
+          :key="movies"
+        >
+          <div class="card">
+            <img
+              v-bind:src="`https://image.tmdb.org/t/p/w500${movies.poster_path}`"
+              :alt="movies.name"
+            />
+            <!-- <p>{{ movies.vote_average.toFixed(1) }}</p> -->
+            <!-- <p>{{ movies.vote_count }}</p> -->
+            <!-- <p>{{ movies.id }}</p> -->
+          </div>
+        </RouterLink>
       </section>
       <section id="toolsSection">
         <p>LETTERBOXD LETS YOU...</p>
@@ -124,79 +126,6 @@ onMounted(async () => {
   </main>
 </template>
 <style scoped>
-/* cover */
-.cover {
-  position: relative;
-
-  width: 1200px;
-  height: 720px;
-  margin-bottom: 20px;
-  /* border: solid 1px blue; */
-}
-.cover > img {
-  object-fit: contain;
-  width: 100%;
-  height: 600px;
-
-  -webkit-mask-image:
-    linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0) 2%,
-      rgba(0, 0, 0, 0.2) 20%,
-      rgba(0, 0, 0, 1) 40%,
-      rgba(0, 0, 0, 0.2) 80%,
-      rgba(0, 0, 0, 0) 98%
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0) 2%,
-      rgba(0, 0, 0, 1) 30%,
-      rgba(0, 0, 0, 1) 70%,
-      rgba(0, 0, 0, 0) 98%
-    );
-
-  -webkit-mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-composite: intersect;
-
-  mask-image:
-    linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0) 2%,
-      rgba(0, 0, 0, 0.2) 20%,
-      rgba(0, 0, 0, 1) 40%,
-      rgba(0, 0, 0, 0.2) 80%,
-      rgba(0, 0, 0, 0) 98%
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0) 2%,
-      rgba(0, 0, 0, 1) 30%,
-      rgba(0, 0, 0, 1) 70%,
-      rgba(0, 0, 0, 0) 98%
-    );
-
-  mask-size: 100% 100%;
-  mask-repeat: no-repeat;
-  mask-composite: intersect;
-}
-.cover > div {
-  position: absolute;
-  bottom: 0px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 50px;
-}
-.cover > div > button {
-  margin: 25px 0;
-}
-
-/* ---- */
-
 #cardSection {
   display: flex;
   justify-content: space-between;

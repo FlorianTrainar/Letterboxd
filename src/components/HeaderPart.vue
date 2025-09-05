@@ -1,9 +1,12 @@
-<script setup></script>
+<script setup>
+import { RouterLink } from 'vue-router'
+</script>
 <template>
   <header>
     <div class="wrapper">
-      <img src="../assets/imgs/letterboxd-vector-logo-cutout.png" />
-
+      <RouterLink :to="{ name: 'home' }">
+        <img src="@/assets/imgs/letterboxd-vector-logo-cutout.png" />
+      </RouterLink>
       <div>
         <p>SIGN IN</p>
         <p>CREATE ACCOUNT</p>
@@ -20,12 +23,12 @@
 </template>
 <style scoped>
 header {
-  background-color: var(--background-color1-);
   color: #f2f4f6;
 
   height: 75px;
   width: 100vw;
   position: absolute;
+  z-index: 10;
 }
 .wrapper {
   display: flex;
