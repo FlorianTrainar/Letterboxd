@@ -4,9 +4,15 @@ import axios from 'axios'
 
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
 const movieInfos = ref({})
-const movieDirector = ref({})
 const topActors = ref([])
 const releaseYear = ref({})
+const movieCrew = ref({
+  directors: [],
+  writers: [],
+  composers: [],
+  producers: [],
+})
+const movieRate = ref(0)
 
 const activeTab = ref('CAST')
 const tabs = ['CAST', 'CREW', 'DETAILS', 'GENRES', 'RELEASES']
@@ -22,9 +28,10 @@ onMounted(async () => {
       params: { api_key: apiKey, language: 'fr-FR' },
     })
 
-    console.log('movieData >>>', movieData)
     movieInfos.value = movieData
     releaseYear.value = movieData.release_date.slice(0, 4)
+    movieRate.value = movieData.vote_average / 2
+    console.log('movieData >>>', movieRate.value)
   } catch (error) {
     console.log('catch>>', error)
   }
@@ -38,17 +45,35 @@ onMounted(async () => {
     )
 
     const cast = creditsData.cast.slice(0, 6)
-    const director = creditsData.crew.find((person) => person.job === 'Director')
 
-    console.log('Director:', director)
-    console.log('Actors:', cast)
+    movieCrew.value.directors = creditsData.crew.filter((person) => person.job === 'Director')
 
-    movieDirector.value = director
+    movieCrew.value.writers = creditsData.crew.filter((person) =>
+      ['Writer', 'Screenplay', 'Story', 'Author'].includes(person.job),
+    )
+    movieCrew.value.producers = creditsData.crew.filter((person) => person.job === 'Producer')
+
+    movieCrew.value.composers = creditsData.crew.filter((person) =>
+      ['Original Music Composer', 'Music', 'Composer', 'Score Composer'].includes(person.job),
+    )
+
+    console.log(movieInfos)
+
     topActors.value = cast
   } catch (error) {
     console.error('Erreur crédits >>>', error)
   }
 })
+
+const starIcon = (i) => {
+  if (movieRate.value >= i) {
+    return ['fas', 'star'] // pleine
+  } else if (movieRate.value >= i - 0.5) {
+    return ['fas', 'star-half-stroke'] // demi-étoile
+  } else {
+    return ['far', 'star'] // vide
+  }
+}
 </script>
 <template>
   <main>
@@ -68,11 +93,14 @@ onMounted(async () => {
         />
       </div>
 
-      <div>
+      <div class="mainZone">
         <section id="titleSec">
           <h1>{{ movieInfos.title }}</h1>
           <p>
-            <span>{{ releaseYear }}</span> Directed by <span>{{ movieDirector.name }}</span>
+            <span>{{ releaseYear }}</span> Directed by
+            <span v-for="directors in movieCrew.directors" :key="directors.id">{{
+              directors.name
+            }}</span>
           </p>
         </section>
 
@@ -95,9 +123,53 @@ onMounted(async () => {
               <div v-if="activeTab === 'CAST'">
                 <button v-for="actors in topActors" :key="actors.name">{{ actors.name }}</button>
               </div>
-              <div v-if="activeTab === 'CREW'">
-                <p>DIRECTOR</p>
-                <button>{{ movieDirector.name }}</button>
+              <div id="crewTab" v-if="activeTab === 'CREW'">
+                <div>
+                  <p>DIRECTOR</p>
+                  <div class="dots"></div>
+                  <div class="names" v-if="movieCrew.directors">
+                    <button v-for="directors in movieCrew.directors" :key="directors.id">
+                      {{ directors.name }}
+                    </button>
+                  </div>
+                </div>
+                <div v-if="movieCrew.writers">
+                  <p>WRITERS</p>
+                  <div class="dots"></div>
+                  <div class="names">
+                    <button v-for="writers in movieCrew.writers" :key="writers.id">
+                      {{ writers.name }}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <p>PRODUCERS</p>
+                  <div class="dots"></div>
+                  <div class="names" v-if="movieCrew.producers">
+                    <button v-for="producers in movieCrew.producers" :key="producers.id">
+                      {{ producers.name }}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <p>COMPOSERS</p>
+                  <div class="dots"></div>
+                  <div class="names" v-if="movieCrew.composers">
+                    <button v-for="composers in movieCrew.composers" :key="composers.id">
+                      {{ composers.name }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="activeTab === 'DETAILS'">
+                <p>En construction...</p>
+              </div>
+              <div v-if="activeTab === 'GENRES'">
+                <p>En construction...</p>
+              </div>
+              <div v-if="activeTab === 'RELEASES'">
+                <p>En construction...</p>
               </div>
             </div>
           </section>
@@ -108,10 +180,13 @@ onMounted(async () => {
             </div>
             <div>
               <p>RATINGS</p>
-              <p>FANS</p>
+              <span>{{ movieInfos.vote_count }} VOTES</span>
             </div>
             <div>
-              <p>SCHEMA ://::// ETOILES</p>
+              <div class="stars">
+                <font-awesome-icon v-for="i in 5" :key="i" :icon="starIcon(i)" />
+              </div>
+              <p>{{ Math.floor(movieRate * 10) / 10 }}</p>
             </div>
           </section>
         </div>
@@ -123,10 +198,6 @@ onMounted(async () => {
 .cover {
   height: 450px;
   z-index: 0;
-}
-span {
-  text-decoration: underline;
-  color: var(--font-color1-);
 }
 
 .wrapper {
@@ -143,14 +214,22 @@ span {
 
 /* MAIN ZONE */
 
+.mainSection {
+  border: solid yellow 2px;
+  margin-bottom: 30px;
+}
+
 #titleSec {
   display: flex;
   gap: 10px;
   align-items: end;
-  height: 50px;
-  margin-bottom: 30px;
+
   flex-wrap: wrap;
-  /* border: solid green 1px; */
+}
+
+#titleSec span {
+  text-decoration: underline;
+  color: var(--font-color1-);
 }
 #titleSec > p {
   margin-bottom: 4px;
@@ -161,11 +240,7 @@ span {
 /* Zone centrale */
 .centerBlock {
   display: flex;
-  /* border: solid 1px blue; */
   gap: 50px;
-}
-.centerBlock > section {
-  /* border: solid yellow 2px; */
 }
 
 #infoSec {
@@ -212,14 +287,44 @@ span {
 }
 
 .tabContent button {
-  background-color: var(--background-color2-);
+  background-color: var(--background-color3-);
   color: var(--font-color2-);
   font-size: 14px;
   width: fit-content;
+
   padding: 6px;
+  margin: 2px;
 }
 .tabContent button:hover {
   color: var(--font-color1-);
+}
+
+#crewTab {
+  width: 100%;
+  /* border: solid 1px red; */
+}
+#crewTab p {
+  padding-top: 6px;
+}
+#crewTab > div {
+  /* border: solid 1px blue; */
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+#crewTab .dots {
+  flex: 1;
+  border-bottom: 1px dotted var(--font-color3-);
+  height: 22px;
+}
+#crewTab .names {
+  width: 60%;
+  display: flex;
+  flex-wrap: wrap;
+}
+#crewTab > div:first-of-type {
+  /* border: solid 1px blue; */
 }
 
 /* --- */
@@ -241,6 +346,9 @@ span {
   border-bottom: var(--font-color3-) 1px solid;
   margin-bottom: 25px;
 }
+#rateSec > div:nth-child(2) > span {
+  color: var(--font-color3-);
+}
 
 #rateSec button {
   background-color: var(--background-color2-);
@@ -252,5 +360,21 @@ span {
 }
 #rateSec button:last-of-type {
   border-radius: 0 0 4px 4px;
+}
+#rateSec > div:last-of-type {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#rateSec > div:last-of-type > p {
+  font-size: 24px;
+}
+#rateSec .stars {
+  display: flex;
+  gap: 2px;
+  color: var(--green-);
+}
+#rateSec .stars > svg {
+  font-size: 22px;
 }
 </style>

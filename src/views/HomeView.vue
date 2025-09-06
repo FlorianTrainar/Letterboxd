@@ -7,7 +7,7 @@ import CoverPart from '@/components/CoverPart.vue'
 const movieList = ref([])
 
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
-const randomPage = Math.floor(Math.random() * 10) + 1
+const randomPage = Math.floor(Math.random() * 25) + 1
 
 onMounted(async () => {
   try {

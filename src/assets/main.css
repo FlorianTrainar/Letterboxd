@@ -47,6 +47,7 @@ p {
 }
 button {
   border: none;
+  border-radius: 4px;
 }
 Button:hover {
   cursor: pointer;
