@@ -4,6 +4,8 @@ import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import CoverPart from '@/components/CoverPart.vue'
 
+import toolsSection from '@/components/toolsSection.vue'
+
 const movieList = ref([])
 
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
@@ -38,6 +40,7 @@ onMounted(async () => {
 <template>
   <main>
     <CoverPart />
+
     <div class="wrapper">
       <section id="cardSection">
         <RouterLink
@@ -56,41 +59,9 @@ onMounted(async () => {
           </div>
         </RouterLink>
       </section>
-      <section id="toolsSection">
-        <p>LETTERBOXD LETS YOU...</p>
-        <div>
-          <div>
-            <p>logo</p>
-            <p>
-              Keep track of every film you've ever watched (or just start from the day you join)
-            </p>
-          </div>
-          <div>
-            <p>logo</p>
-            <p>Show some love for your favorite films, lists and reviews with a "like"</p>
-          </div>
-          <div>
-            <p>logo</p>
-            <p>Write and share reviews, and follow friends and other members to read theirs</p>
-          </div>
-          <div>
-            <p>logo</p>
-            <p>
-              rate each film on a five-star scale (with halves) to record and share your reaction
-            </p>
-          </div>
-          <div>
-            <p>logo</p>
-            <p>Keep a diary of your film watching (and upgrade to Pro for comprehensive stats)</p>
-          </div>
-          <div>
-            <p>logo</p>
-            <p>
-              Compile and share lists of films on any topic and keep a watchlists of films to see
-            </p>
-          </div>
-        </div>
-      </section>
+
+      <toolsSection />
+
       <section id="reviewedSection">
         <div>
           <p>JUST REVIEWD...</p>
@@ -132,21 +103,7 @@ onMounted(async () => {
   width: 100%;
 }
 
-#toolsSection > div {
-  display: flex;
-  gap: 12px 0;
-  flex-wrap: wrap;
-  justify-content: space-between;
-}
-#toolsSection > div > div {
-  background-color: var(--background-color2-);
-  display: flex;
-  gap: 10px;
-  border-radius: 4px;
-  width: 32.7%;
-  flex-shrink: 0;
-  padding: 20px;
-}
+/* ---  */
 
 #reviewedSection > div:first-child {
   display: flex;

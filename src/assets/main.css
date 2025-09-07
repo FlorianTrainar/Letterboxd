@@ -12,6 +12,8 @@
   --font-color2-: #a7b8c8;
   --font-color3-: #a7b8c894;
   --green-: #39c030;
+  --orange-: #ee7000;
+  --blue-: #309ce4;
 }
 
 .wrapper {
@@ -43,7 +45,6 @@ h2 {
 }
 p {
   font-size: 18px;
-  color: var(--font-color2-);
 }
 button {
   border: none;
