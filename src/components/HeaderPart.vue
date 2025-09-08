@@ -1,23 +1,15 @@
 <script setup>
 import { RouterLink, useRouter } from 'vue-router'
 import { ref } from 'vue'
-import SignupPart from '@/components/SignupPart.vue'
+import { useModalStore } from '@/assets/JS/modalStore'
+
 import { useAuth } from '@/assets/JS/useAuth'
 import axios from 'axios'
 
 const router = useRouter()
+const modalStore = useModalStore()
 
 const { loggedIn, login, logout, user } = useAuth()
-
-const showLoginForm = ref(false)
-const closeLoginForm = () => {
-  showLoginForm.value = false
-}
-
-const showSignupForm = ref(false)
-const closeForm = () => {
-  showSignupForm.value = false
-}
 
 const username = ref('')
 const password = ref('')
@@ -49,7 +41,7 @@ const handleSubmit = async () => {
       }
 
       router.push({ name: 'home' })
-      showLoginForm.value = false
+      modalStore.closeLogin()
     } catch (error) {
       console.log(error.response.data.error)
       errorMessage.value = 'Une erreur est survenue'
@@ -68,9 +60,9 @@ const handleSubmit = async () => {
         <img src="@/assets/imgs/letterboxd-vector-logo-cutout.png" />
       </RouterLink>
 
-      <div class="headerMenu" v-if="!showLoginForm">
-        <button v-if="!loggedIn" @click="showLoginForm = true">SIGN IN</button>
-        <button v-if="!loggedIn" @click="showSignupForm = true">CREATE ACCOUNT</button>
+      <div class="headerMenu" v-if="!modalStore.showLoginForm">
+        <button v-if="!loggedIn" @click="modalStore.openLogin">SIGN IN</button>
+        <button v-if="!loggedIn" @click="modalStore.openSignup">CREATE ACCOUNT</button>
 
         <div v-if="loggedIn">
           <div class="userInfo">
@@ -103,23 +95,19 @@ const handleSubmit = async () => {
         </form>
       </div>
 
-      <form class="loginForm" v-if="showLoginForm" @submit.prevent="handleSubmit">
-        <button @click="closeLoginForm">x</button>
+      <form class="loginForm" v-if="modalStore.showLoginForm" @submit.prevent="handleSubmit">
+        <button type="button" @click="modalStore.closeLogin">x</button>
         <div>
           <label for="username">Username</label>
           <input type="text" id="username" v-model="username" />
         </div>
         <div>
           <label for="password">Password</label>
-          <input type="text" id="password" v-model="password" />
+          <input type="password" id="password" v-model="password" />
         </div>
-        <button>SIGN IN</button>
+        <button type="submit">SIGN IN</button>
       </form>
     </div>
-    <div v-if="showSignupForm" class="formOverlay"></div>
-    <transition name="fade">
-      <SignupPart v-if="showSignupForm" @close="closeForm" />
-    </transition>
   </header>
 </template>
 <style scoped>
@@ -267,31 +255,4 @@ img {
 }
 
 /* Sign Up Menu */
-
-.formOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8); /* Fond sombre */
-  z-index: 1;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition:
-    transform 0.5s ease,
-    opacity 0.5s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: scale(0.5);
-}
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
-  transform: scale(1);
-}
 </style>

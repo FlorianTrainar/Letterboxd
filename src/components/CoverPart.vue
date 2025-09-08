@@ -1,9 +1,9 @@
 <script setup>
 import { useAuth } from '@/assets/JS/useAuth'
+import { useModalStore } from '@/assets/JS/modalStore'
 
 const { loggedIn, user } = useAuth()
-
-const emit = defineEmits(['open-signup'])
+const modalStore = useModalStore()
 </script>
 <template>
   <div class="cover">
@@ -12,15 +12,9 @@ const emit = defineEmits(['open-signup'])
       <h1>Track films you've watched.</h1>
       <h1>Save those you want to see</h1>
       <h1>Tell your friends what's good</h1>
-      <button @click="$emit('open-signup')">Get started - it's free!</button>
+      <button @click="modalStore.openSignup">Get started - it's free!</button>
 
       <p>The social netwok for film lovers. Also available on ...</p>
-    </div>
-    <div class="greeting" v-if="loggedIn">
-      <h1>
-        Welcome back <span>{{ user.username }} !</span>
-      </h1>
-      <h2>Here's what we've been watching...</h2>
     </div>
   </div>
 </template>
@@ -39,6 +33,7 @@ const emit = defineEmits(['open-signup'])
   gap: 10px;
   margin-bottom: 50px;
 }
+
 .greeting > button {
   background-color: var(--green-);
   color: var(--font-color1-);

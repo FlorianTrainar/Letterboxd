@@ -2,10 +2,14 @@
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+
 import CoverPart from '@/components/CoverPart.vue'
 import toolsSection from '@/components/toolsSection.vue'
-
 import SignupPart from '@/components/SignupPart.vue'
+
+import { useAuth } from '@/assets/JS/useAuth'
+
+const { loggedIn, user } = useAuth()
 
 const showSignupForm = ref(false)
 
@@ -42,39 +46,54 @@ onMounted(async () => {
 </script>
 <template>
   <main>
-    <CoverPart @open-signup="showSignupForm = true" />
-    <SignupPart v-if="showSignupForm" @close="showSignupForm = false" />
+    <CoverPart v-if="!loggedIn" @open-signup="showSignupForm = true" />
+    <div v-if="showSignupForm" class="formOverlay"></div>
+    <div class="formWrapper">
+      <transition name="fade">
+        <SignupPart v-if="showSignupForm" @close="showSignupForm = false" />
+      </transition>
+    </div>
 
     <div class="wrapper">
+      <div v-if="loggedIn" class="loggedInGreet">
+        <h1>
+          Welcome back <span>{{ user.username }} !</span>
+        </h1>
+        <h2>Here's what we've been watching...</h2>
+      </div>
       <section id="cardSection">
-        <RouterLink
-          :to="{ name: 'movie', params: { id: movies.id } }"
-          v-for="(movies, index) in movieList.slice(0, 6)"
-          :key="movies"
-        >
-          <div class="card">
-            <img
-              v-bind:src="`https://image.tmdb.org/t/p/w500${movies.poster_path}`"
-              :alt="movies.name"
-            />
-          </div>
-        </RouterLink>
+        <div class="sectionTitle" v-if="loggedIn">
+          <p>NEW ON LETTERBOXD</p>
+          <span>
+            <font-awesome-icon :icon="['fas', 'bolt']" />
+            YOUR ACTIVITY</span
+          >
+        </div>
+        <div class="cards">
+          <RouterLink
+            :to="{ name: 'movie', params: { id: movies.id } }"
+            v-for="(movies, index) in movieList.slice(0, 6)"
+            :key="movies"
+          >
+            <div class="card">
+              <img
+                v-bind:src="`https://image.tmdb.org/t/p/w500${movies.poster_path}`"
+                :alt="movies.name"
+              />
+            </div>
+          </RouterLink>
+        </div>
       </section>
 
-      <toolsSection />
+      <toolsSection v-if="!loggedIn" />
 
       <section id="reviewedSection">
-        <div>
+        <div class="sectionTitle">
           <p>JUST REVIEWD...</p>
           <p>2,000,000 films watched</p>
         </div>
-        <div>
-          <div
-            class="card"
-            id="reviewedCard"
-            v-for="(movies, index) in movieList.slice(7, 19)"
-            :key="movies"
-          >
+        <div class="cards">
+          <div class="card" v-for="(movies, index) in movieList.slice(7, 19)" :key="movies">
             <img
               v-bind:src="`https://image.tmdb.org/t/p/w500${movies.poster_path}`"
               :alt="movies.name"
@@ -98,25 +117,74 @@ onMounted(async () => {
   </main>
 </template>
 <style scoped>
-#cardSection {
+/* COVER */
+
+.formOverlay {
+  position: fixed;
+  z-index: 1;
+  top: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8); /* Fond sombre */
+}
+.formWrapper {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  z-index: 2;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    transform 0.5s ease,
+    opacity 0.5s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.5);
+}
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* --- */
+
+.loggedInGreet {
+  /* border: solid blue 1px; */
+  margin-top: 150px;
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.sectionTitle {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: var(--font-color3-) 1px solid;
+  margin-bottom: 20px;
+  padding-bottom: 4px;
+}
+
+/* --- */
+
+#cardSection > .cards {
   display: flex;
   justify-content: space-between;
   width: 100%;
 }
 
-/* ---  */
-
-#reviewedSection > div:first-child {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: var(--font-color3-) 1px solid;
-  margin-bottom: 20px;
-}
-#reviewedSection > div:nth-child(2) {
+#reviewedSection > .cards {
   display: flex;
   justify-content: space-between;
 }
-#reviewedCard > img {
+#reviewedSection > .cards img {
   width: 81px;
   height: 116px;
 }

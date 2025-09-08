@@ -2,6 +2,9 @@
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
 
+import { useModalStore } from '@/assets/JS/modalStore'
+const modalStore = useModalStore()
+
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
 const movieInfos = ref({})
 const topActors = ref([])
@@ -175,7 +178,7 @@ const starIcon = (i) => {
           </section>
           <section id="rateSec">
             <div>
-              <button>Sign in to log, rate, or review</button>
+              <button button @click="modalStore.openLogin">Sign in to log, rate, or review</button>
               <button>Share</button>
             </div>
             <div>
