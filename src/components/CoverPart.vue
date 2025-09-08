@@ -1,16 +1,25 @@
-<script setup></script>
+<script setup>
+import { useAuth } from '@/assets/JS/useAuth'
+
+const { loggedIn, user } = useAuth()
+
+const emit = defineEmits(['open-signup'])
+</script>
 <template>
   <div class="cover">
     <img src="../assets/imgs/weapons-anatomy1-gmzt-videoSixteenByNine3000.webp" alt="" />
-    <div class="greeting logOut">
+    <div class="greeting" v-if="!loggedIn">
       <h1>Track films you've watched.</h1>
       <h1>Save those you want to see</h1>
       <h1>Tell your friends what's good</h1>
-      <button>Get started - it's free!</button>
+      <button @click="$emit('open-signup')">Get started - it's free!</button>
+
       <p>The social netwok for film lovers. Also available on ...</p>
     </div>
-    <div class="greeting logIn">
-      <h1>Welcome back <span>FloLeGosseBeau.</span></h1>
+    <div class="greeting" v-if="loggedIn">
+      <h1>
+        Welcome back <span>{{ user.username }} !</span>
+      </h1>
       <h2>Here's what we've been watching...</h2>
     </div>
   </div>
@@ -19,13 +28,6 @@
 .cover {
   height: 720px;
 }
-
-.logOut {
-  visibility: hidden;
-}
-.logIn {
-}
-
 .greeting {
   position: absolute;
   bottom: 0px;
@@ -46,7 +48,5 @@
   border-radius: 6px;
   border: none;
   margin: 25px 0;
-}
-
-/* ---- */
+} /* ---- */
 </style>

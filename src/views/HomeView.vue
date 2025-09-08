@@ -3,8 +3,11 @@ import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import CoverPart from '@/components/CoverPart.vue'
-
 import toolsSection from '@/components/toolsSection.vue'
+
+import SignupPart from '@/components/SignupPart.vue'
+
+const showSignupForm = ref(false)
 
 const movieList = ref([])
 
@@ -39,7 +42,8 @@ onMounted(async () => {
 </script>
 <template>
   <main>
-    <CoverPart />
+    <CoverPart @open-signup="showSignupForm = true" />
+    <SignupPart v-if="showSignupForm" @close="showSignupForm = false" />
 
     <div class="wrapper">
       <section id="cardSection">
@@ -53,9 +57,6 @@ onMounted(async () => {
               v-bind:src="`https://image.tmdb.org/t/p/w500${movies.poster_path}`"
               :alt="movies.name"
             />
-            <!-- <p>{{ movies.vote_average.toFixed(1) }}</p> -->
-            <!-- <p>{{ movies.vote_count }}</p> -->
-            <!-- <p>{{ movies.id }}</p> -->
           </div>
         </RouterLink>
       </section>

@@ -1,63 +1,69 @@
 <script setup>
+import { ref } from 'vue'
+
+import { useSignup } from '@/assets/JS/useSignup'
+
 const emit = defineEmits(['close'])
+
+const username = ref('')
+const email = ref('')
+const password = ref('')
+
+const { signup, isSubmitting, errorMessage } = useSignup()
+
+const handleSubmit = async () => {
+  const success = await signup({
+    username: username.value,
+    email: email.value,
+    password: password.value,
+  })
+  if (success) {
+    emit('close')
+  }
+}
 </script>
 <template>
-  <div class="modal-overlay" @click.self="emit('close')">
-    <main>
-      <form>
-        <div class="title">
-          <h3>JOIN LETTERBOXD</h3>
-          <button type="button" @click="emit('close')">X</button>
-        </div>
-        <div class="textInput">
-          <label for="email">Email address</label>
-          <input type="text" name="email" id="email" />
-        </div>
-        <div class="textInput">
-          <label for="usermail">Usermail</label>
-          <input type="text" name="usermail" id="usermail" />
-        </div>
-        <div class="textInput">
-          <label for="password">Password</label>
-          <input type="text" name="password" id="password" />
-        </div>
-        <div class="checkbox">
-          <input type="checkbox" id="termsOfUse" />
-          <label for="termsOfUse">
-            I'm at least 16 years old and accept <span>the Terms of Use.</span></label
-          >
-        </div>
-        <div class="checkbox">
-          <input type="checkbox" id="privacyPolicy" />
-          <label for="privacyPolicy"
-            >I accept the <span>Privacy Policy</span> and consent to the processing of my personal
-            information in accordance with it.</label
-          >
-        </div>
-        <button>SIGN UP</button>
-      </form>
-    </main>
-  </div>
+  <main>
+    <form @submit.prevent="handleSubmit">
+      <div class="title">
+        <h3>JOIN LETTERBOXD</h3>
+        <button type="button" @click="emit('close')">X</button>
+      </div>
+      <div class="textInput">
+        <label for="email">Email address</label>
+        <input type="text" id="email" v-model="email" />
+      </div>
+      <div class="textInput">
+        <label for="username">Username</label>
+        <input type="text" v-model="username" id="username" />
+      </div>
+      <div class="textInput">
+        <label for="password">Password</label>
+        <input type="text" v-model="password" id="password" />
+      </div>
+      <div class="checkbox">
+        <input type="checkbox" id="termsOfUse" v-model="termOfUse" />
+        <label for="termsOfUse">
+          I'm at least 16 years old and accept <span>the Terms of Use.</span></label
+        >
+      </div>
+      <div class="checkbox">
+        <input type="checkbox" id="privacyPolicy" v-model="privacyPolicy" />
+        <label for="privacyPolicy"
+          >I accept the <span>Privacy Policy</span> and consent to the processing of my personal
+          information in accordance with it.</label
+        >
+      </div>
+      <button>SIGN UP</button>
+    </form>
+  </main>
 </template>
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8); /* Fond sombre */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
 main {
-  background: var(--background-color2-, white);
-  border-radius: 8px;
-  max-width: 500px;
+  background: none;
   position: relative;
+  z-index: 2;
+  margin: 20px auto;
 }
 
 form {
@@ -69,6 +75,7 @@ form {
   gap: 20px;
   width: 420px;
   height: 500px;
+  position: fixed;
 }
 form div {
   display: flex;
