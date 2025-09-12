@@ -15,14 +15,18 @@ export function useSignup() {
     errorMessage.value = ''
 
     try {
-      const response = await axios.post('http://localhost:1337/api/auth/local/register', {
-        username,
-        email,
-        password,
-      })
+      const response = await axios.post(
+        'https://tranquil-confidence-b13331c5ed.strapiapp.com/api/auth/local/register',
+        {
+          username,
+          email,
+          password,
+        },
+      )
 
       const token = response.data.jwt
       const user = response.data.user
+      console.log(response.data)
 
       if (token && user) {
         login(token, user)

@@ -13,30 +13,40 @@ import {
   faStar as faStarSolid,
   faStarHalfStroke,
   faSearch,
-  faEye,
-  faHeart,
+  faEye as fasEye,
+  faHeart as fasHeart,
   faAlignLeft,
   faCalendar,
   faFilm,
   faUser,
   faBolt,
   faChevronDown,
+  faClock as fasClock,
 } from '@fortawesome/free-solid-svg-icons'
-import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons'
+import {
+  faStar as faStarRegular,
+  faClock as farClock,
+  faEye as farEye,
+  faHeart as farHeart,
+} from '@fortawesome/free-regular-svg-icons'
 import {} from '@fortawesome/free-brands-svg-icons'
 library.add(
   faStarSolid,
   faStarRegular,
   faStarHalfStroke,
   faSearch,
-  faEye,
-  faHeart,
+  fasEye,
+  farEye,
+  fasHeart,
+  farHeart,
   faAlignLeft,
   faCalendar,
   faFilm,
   faUser,
   faBolt,
   faChevronDown,
+  fasClock,
+  farClock,
 )
 
 const app = createApp(App).component('font-awesome-icon', FontAwesomeIcon)

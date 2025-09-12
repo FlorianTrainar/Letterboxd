@@ -16,6 +16,15 @@ const password = ref('')
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 
+const searchQuery = ref('')
+const isSearchFocused = ref(false)
+
+function submitSearch() {
+  if (searchQuery.value.trim()) {
+    router.push({ name: 'search', query: { q: searchQuery.value.trim() } })
+  }
+}
+
 const handleSubmit = async () => {
   console.log('submit', {
     username: username.value,
@@ -24,10 +33,13 @@ const handleSubmit = async () => {
   isSubmitting.value = true
   if (username.value && password.value) {
     try {
-      const response = await axios.post('http://localhost:1337/api/auth/local', {
-        identifier: username.value,
-        password: password.value,
-      })
+      const response = await axios.post(
+        'https://tranquil-confidence-b13331c5ed.strapiapp.com/api/auth/local',
+        {
+          identifier: username.value,
+          password: password.value,
+        },
+      )
       console.log(response)
 
       // Récupère le token dans la réponse (ici supposé dans response.data.jwt)
@@ -40,7 +52,6 @@ const handleSubmit = async () => {
         console.warn('Pas de token dans la réponse signup')
       }
 
-      router.push({ name: 'home' })
       modalStore.closeLogin()
     } catch (error) {
       console.log(error.response.data.error)
@@ -72,12 +83,15 @@ const handleSubmit = async () => {
             <p v-if="user.username">{{ user.username.toUpperCase() }}</p>
             <font-awesome-icon :icon="['fas', 'chevron-down']" />
             <div class="toolBar">
-              <button>Home</button>
-              <button>Profile</button>
-              <button>Film</button>
-              <button>Reviews</button>
+              <RouterLink :to="{ name: 'home' }" class="btn"> Home </RouterLink>
+              <RouterLink :to="{ name: 'profile', params: { id: user.id } }" class="btn">
+                Profile
+              </RouterLink>
 
-              <button @click="logout()">Sign Out</button>
+              <button class="btn">Film</button>
+              <button class="btn">Reviews</button>
+
+              <button @click="logout()" class="btn">Sign Out</button>
             </div>
           </div>
           <font-awesome-icon :icon="['fas', 'bolt']" />
@@ -87,26 +101,38 @@ const handleSubmit = async () => {
         <p>LISTS</p>
         <p>MEMBERS</p>
         <p>JOURNAL</p>
-        <form class="searchInput">
-          <input type="text" name="" id="" />
+        <form
+          class="searchInput"
+          :class="{ focused: isSearchFocused }"
+          @submit.prevent="submitSearch"
+        >
+          <input
+            type="text"
+            v-model="searchQuery"
+            @focus="isSearchFocused = true"
+            @blur="isSearchFocused = false"
+            @keyup.enter="submitSearch"
+          />
           <button>
             <font-awesome-icon :icon="['fas', 'magnifying-glass']" />
           </button>
         </form>
       </div>
 
-      <form class="loginForm" v-if="modalStore.showLoginForm" @submit.prevent="handleSubmit">
-        <button type="button" @click="modalStore.closeLogin">x</button>
-        <div>
-          <label for="username">Username</label>
-          <input type="text" id="username" v-model="username" />
-        </div>
-        <div>
-          <label for="password">Password</label>
-          <input type="password" id="password" v-model="password" />
-        </div>
-        <button type="submit">SIGN IN</button>
-      </form>
+      <Transition name="fade">
+        <form class="loginForm" v-if="modalStore.showLoginForm" @submit.prevent="handleSubmit">
+          <button type="button" @click="modalStore.closeLogin">x</button>
+          <div>
+            <label for="username">Username</label>
+            <input type="text" id="username" v-model="username" />
+          </div>
+          <div>
+            <label for="password">Password</label>
+            <input type="password" id="password" v-model="password" />
+          </div>
+          <button type="submit">SIGN IN</button>
+        </form>
+      </Transition>
     </div>
   </header>
 </template>
@@ -114,7 +140,7 @@ const handleSubmit = async () => {
 header {
   color: #f2f4f6;
 
-  height: 75px;
+  height: var(--header-height-);
   width: 100%;
   position: absolute;
   z-index: 10;
@@ -146,21 +172,32 @@ img {
   background: none;
   color: var(--font-color1-);
 }
+
+/*  */
 .searchInput {
   display: flex;
   padding: 8px 2px;
   border-radius: 20px;
-  background-color: var(--background-color2-);
+  background-color: var(--background-color3-);
+  transition: background-color 0.3s ease;
 }
-
 .searchInput input {
   background: none;
   border: none;
   outline: none;
   width: 100px;
+  color: var(--font-color3-);
 }
 .searchInput svg {
   color: var(--font-color2-);
+}
+
+.searchInput.focused {
+  background-color: var(--font-color1-);
+}
+.searchInput.focused input,
+.searchInput.focused svg {
+  color: var(--background-color1-);
 }
 
 /* User */
@@ -200,13 +237,15 @@ img {
   flex-direction: column;
   align-items: flex-start;
 }
-.toolBar > button {
+.toolBar > .btn {
   color: var(--background-color1-);
   width: 100%;
   text-align: left;
   padding: 4px 10px;
+  text-decoration: none;
+  font-size: 16px;
 }
-.toolBar > button:hover {
+.toolBar > .btn:hover {
   background-color: var(--background-color2-);
   color: var(--font-color1-);
 }
@@ -221,10 +260,31 @@ img {
 }
 /* Login Menu */
 
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    transform 0.5s ease,
+    opacity 0.5s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.5);
+}
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .loginForm {
+  position: absolute;
+  right: 210px;
   display: flex;
   align-items: flex-end;
   gap: 10px;
+  background-color: var(--background-color1-);
+  padding: 10px 12px;
 }
 .loginForm label {
   color: var(--font-color3-);
@@ -241,17 +301,18 @@ img {
   border-radius: 4px;
 }
 .loginForm > button {
-  padding: 8px 14px;
 }
 .loginForm > button:first-of-type {
   background: none;
   color: var(--font-color3-);
-  font-size: 20px;
+  font-size: 26px;
+  padding: 4px 4px;
 }
 .loginForm > button:last-of-type {
   background-color: var(--green-);
   color: var(--font-color1-);
   font-weight: bold;
+  padding: 8px 14px;
 }
 
 /* Sign Up Menu */

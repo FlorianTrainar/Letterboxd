@@ -1,9 +1,16 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import axios from 'axios'
 
+import InteractionForm from '@/components/InteractionForm.vue'
+import ReviewForm from '@/components/ReviewForm.vue'
+
+import { useAuth } from '@/assets/JS/useAuth'
 import { useModalStore } from '@/assets/JS/modalStore'
+const auth = useAuth()
 const modalStore = useModalStore()
+
+const loggedIn = computed(() => auth.loggedIn.value)
 
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
 const movieInfos = ref({})
@@ -16,6 +23,14 @@ const movieCrew = ref({
   producers: [],
 })
 const movieRate = ref(0)
+const reviewSavedFlag = ref(false)
+
+const onReviewSaved = () => {
+  reviewSavedFlag.value = false
+  setTimeout(() => {
+    reviewSavedFlag.value = true
+  }, 10) // un petit délai plus fiable
+}
 
 const activeTab = ref('CAST')
 const tabs = ['CAST', 'CREW', 'DETAILS', 'GENRES', 'RELEASES']
@@ -24,8 +39,14 @@ const props = defineProps({
   id: { required: true },
 })
 
+const showReviewForm = ref(false)
+const handleReviewForm = () => {
+  showReviewForm.value = true
+}
+// console.log('loggedIn initial:', auth.loggedIn)
+
 onMounted(async () => {
-  console.log(activeTab.value)
+  // console.log(activeTab.value)
   try {
     const { data: movieData } = await axios.get(`https://api.themoviedb.org/3/movie/${props.id}`, {
       params: { api_key: apiKey, language: 'fr-FR' },
@@ -34,7 +55,7 @@ onMounted(async () => {
     movieInfos.value = movieData
     releaseYear.value = movieData.release_date.slice(0, 4)
     movieRate.value = movieData.vote_average / 2
-    console.log('movieData >>>', movieRate.value)
+    // console.log('movieData >>>', movieRate.value)
   } catch (error) {
     console.log('catch>>', error)
   }
@@ -60,7 +81,7 @@ onMounted(async () => {
       ['Original Music Composer', 'Music', 'Composer', 'Score Composer'].includes(person.job),
     )
 
-    console.log(movieInfos)
+    // console.log(movieInfos)
 
     topActors.value = cast
   } catch (error) {
@@ -88,7 +109,7 @@ const starIcon = (i) => {
       />
     </div>
     <div class="wrapper">
-      <div id="posterZone">
+      <div class="posterZone">
         <img
           v-if="movieInfos && movieInfos.poster_path"
           v-bind:src="`https://image.tmdb.org/t/p/w500${movieInfos.poster_path}`"
@@ -97,7 +118,7 @@ const starIcon = (i) => {
       </div>
 
       <div class="mainZone">
-        <section id="titleSec">
+        <section class="movieTitle">
           <h1>{{ movieInfos.title }}</h1>
           <p>
             <span>{{ releaseYear }}</span> Directed by
@@ -107,8 +128,8 @@ const starIcon = (i) => {
           </p>
         </section>
 
-        <div class="centerBlock">
-          <section id="infoSec">
+        <div class="mainBlock">
+          <div class="leftColumn">
             <p>{{ movieInfos.tagline }}</p>
             <p>{{ movieInfos.overview }}</p>
             <div class="tabSelector">
@@ -124,7 +145,11 @@ const starIcon = (i) => {
 
             <div class="tabContent">
               <div v-if="activeTab === 'CAST'">
-                <button v-for="actors in topActors" :key="actors.name">{{ actors.name }}</button>
+                <div class="artistLink" v-for="actor in topActors" :key="actor.name">
+                  <RouterLink :to="{ name: 'person', params: { id: actor.id } }">
+                    {{ actor.name }}
+                  </RouterLink>
+                </div>
               </div>
               <div id="crewTab" v-if="activeTab === 'CREW'">
                 <div>
@@ -175,18 +200,29 @@ const starIcon = (i) => {
                 <p>En construction...</p>
               </div>
             </div>
-          </section>
-          <section id="rateSec">
+          </div>
+          <section class="rightColumn">
             <div>
-              <button button @click="modalStore.openLogin">Sign in to log, rate, or review</button>
-              <button>Share</button>
+              <div class="globalBlock loggedOutBlock" v-if="!loggedIn">
+                <button button @click="modalStore.openLogin">
+                  Sign in to log, rate, or review
+                </button>
+                <button>Share</button>
+              </div>
+
+              <InteractionForm
+                :filmID="props.id"
+                :reviewSaved="reviewSavedFlag"
+                @showReviewForm="handleReviewForm"
+                v-else
+              />
             </div>
-            <div>
+            <div class="globalRating">
               <p>RATINGS</p>
               <span>{{ movieInfos.vote_count }} VOTES</span>
             </div>
-            <div>
-              <div class="stars">
+            <div class="globalStars">
+              <div>
                 <font-awesome-icon v-for="i in 5" :key="i" :icon="starIcon(i)" />
               </div>
               <p>{{ Math.floor(movieRate * 10) / 10 }}</p>
@@ -195,20 +231,29 @@ const starIcon = (i) => {
         </div>
       </div>
     </div>
+
+    <div v-if="showReviewForm" class="formOverlay"></div>
+    <transition name="fade">
+      <div class="reviewFormWrapper" v-if="showReviewForm">
+        <ReviewForm
+          :movie="movieInfos"
+          @closeReviewForm="showReviewForm = false"
+          @reviewSaved="onReviewSaved"
+        />
+      </div>
+    </transition>
   </main>
 </template>
 <style scoped>
-.cover {
-  height: 450px;
-  z-index: 0;
-}
-
 .wrapper {
   display: flex;
   gap: 40px;
   z-index: 1;
 }
-#posterZone > img {
+
+/* LEFT ZONE */
+
+.posterZone > img {
   width: 230px;
   height: 345px;
   border-radius: 10px;
@@ -217,36 +262,31 @@ const starIcon = (i) => {
 
 /* MAIN ZONE */
 
-.mainSection {
-  border: solid yellow 2px;
-  margin-bottom: 30px;
-}
-
-#titleSec {
+.movieTitle {
   display: flex;
   gap: 10px;
   align-items: end;
-
   flex-wrap: wrap;
 }
-
-#titleSec span {
+.movieTitle span {
   text-decoration: underline;
   color: var(--font-color1-);
 }
-#titleSec > p {
+.movieTitle > p {
   margin-bottom: 4px;
 }
 
-/*  */
+/* MAIN*/
 
-/* Zone centrale */
-.centerBlock {
+.mainBlock {
   display: flex;
   gap: 50px;
+  margin-bottom: 60px;
 }
 
-#infoSec {
+/* Left Column*/
+
+.leftColumn {
   flex: 10;
   display: flex;
   flex-direction: column;
@@ -255,7 +295,6 @@ const starIcon = (i) => {
 .tabSelector {
   display: flex;
   gap: 10px;
-
   border-bottom: var(--font-color3-) 1px solid;
 }
 .tabSelector > button {
@@ -265,7 +304,6 @@ const starIcon = (i) => {
   padding-bottom: 4px;
   position: relative;
 }
-
 .tabSelector > button::after {
   content: '';
   position: absolute;
@@ -283,22 +321,26 @@ const starIcon = (i) => {
 .tabSelector > button.activeTab {
   color: white;
 }
-.tabContent {
+.tabContent > div {
   display: flex;
-  gap: 10px;
+  gap: 6px;
   flex-wrap: wrap;
 }
-
-.tabContent button {
+.artistLink {
   background-color: var(--background-color3-);
-  color: var(--font-color2-);
-  font-size: 14px;
   width: fit-content;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.artistLink > a {
+  color: var(--font-color2-);
+  text-decoration: none;
+  font-size: 14px;
 
   padding: 6px;
   margin: 2px;
 }
-.tabContent button:hover {
+.tabContent a:hover {
   color: var(--font-color1-);
 }
 
@@ -326,58 +368,92 @@ const starIcon = (i) => {
   display: flex;
   flex-wrap: wrap;
 }
-#crewTab > div:first-of-type {
-  /* border: solid 1px blue; */
-}
 
-/* --- */
+/* Right Column*/
 
-#rateSec {
+.rightColumn {
   /* border: solid 1px green; */
   flex: 5;
 }
-#rateSec > div:first-child {
+.rightColumn .globalBlock {
   display: flex;
   flex-direction: column;
   gap: 1px;
   margin-bottom: 25px;
+  border-radius: 20px;
 }
-#rateSec > div:nth-child(2) {
+
+.loggedOutBlock button {
+  background-color: var(--background-color2-);
+  color: var(--font-color2-);
+  padding: 12px 15px;
+}
+.loggedOutBlock button:first-of-type {
+  border-radius: 4px 4px 0 0;
+}
+.loggedOutBlock button:last-of-type {
+  border-radius: 0 0 4px 4px;
+}
+
+/*  */
+.globalRating {
   display: flex;
   justify-content: space-between;
   padding-bottom: 4px;
   border-bottom: var(--font-color3-) 1px solid;
   margin-bottom: 25px;
 }
-#rateSec > div:nth-child(2) > span {
+.globalRating > span {
   color: var(--font-color3-);
 }
-
-#rateSec button {
-  background-color: var(--background-color2-);
-  color: var(--font-color2-);
-  padding: 12px 15px;
-}
-#rateSec button:first-of-type {
-  border-radius: 4px 4px 0 0;
-}
-#rateSec button:last-of-type {
-  border-radius: 0 0 4px 4px;
-}
-#rateSec > div:last-of-type {
+.globalStars {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-#rateSec > div:last-of-type > p {
+.globalStars > p {
   font-size: 24px;
 }
-#rateSec .stars {
+.globalStars > div {
   display: flex;
   gap: 2px;
   color: var(--green-);
 }
-#rateSec .stars > svg {
+.globalStars svg {
   font-size: 22px;
+}
+
+.formOverlay {
+  position: fixed;
+  z-index: 1;
+  top: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8); /* Fond sombre */
+}
+.reviewFormWrapper {
+  position: fixed;
+
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    transform 0.5s ease,
+    opacity 0.5s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.5) translate(-50%, -50%);
+}
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: scale(1) translate(-50%, -50%);
 }
 </style>

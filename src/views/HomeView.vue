@@ -35,10 +35,10 @@ onMounted(async () => {
     const shuffled = data.results.sort(() => 0.5 - Math.random())
     movieList.value = shuffled.slice(0, 6)
 
-    console.log('Data >>>', data)
+    // console.log('Data >>>', data)
 
     movieList.value = data.results.slice(0, 24)
-    console.log(movieList.value)
+    // console.log(movieList.value)
   } catch (error) {
     console.log('catch >>>', error)
   }
@@ -46,7 +46,10 @@ onMounted(async () => {
 </script>
 <template>
   <main>
+    <div v-if="loggedIn" class="headerBackground"></div>
+
     <CoverPart v-if="!loggedIn" @open-signup="showSignupForm = true" />
+
     <div v-if="showSignupForm" class="formOverlay"></div>
     <div class="formWrapper">
       <transition name="fade">
@@ -55,13 +58,13 @@ onMounted(async () => {
     </div>
 
     <div class="wrapper">
-      <div v-if="loggedIn" class="loggedInGreet">
+      <div v-if="loggedIn" class="greetings">
         <h1>
           Welcome back <span>{{ user.username }} !</span>
         </h1>
         <h2>Here's what we've been watching...</h2>
       </div>
-      <section id="cardSection">
+      <section class="bigCardsSection">
         <div class="sectionTitle" v-if="loggedIn">
           <p>NEW ON LETTERBOXD</p>
           <span>
@@ -87,13 +90,13 @@ onMounted(async () => {
 
       <toolsSection v-if="!loggedIn" />
 
-      <section id="reviewedSection">
+      <section class="smallCardsSection">
         <div class="sectionTitle">
           <p>JUST REVIEWD...</p>
           <p>2,000,000 films watched</p>
         </div>
         <div class="cards">
-          <div class="card" v-for="(movies, index) in movieList.slice(7, 19)" :key="movies">
+          <div class="card" v-for="movies in movieList.slice(7, 19)" :key="movies">
             <img
               v-bind:src="`https://image.tmdb.org/t/p/w500${movies.poster_path}`"
               :alt="movies.name"
@@ -154,7 +157,7 @@ onMounted(async () => {
 
 /* --- */
 
-.loggedInGreet {
+.greetings {
   /* border: solid blue 1px; */
   margin-top: 150px;
   margin-bottom: 30px;
@@ -164,29 +167,15 @@ onMounted(async () => {
   gap: 15px;
 }
 
-.sectionTitle {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: var(--font-color3-) 1px solid;
-  margin-bottom: 20px;
-  padding-bottom: 4px;
-}
-
 /* --- */
-
-#cardSection > .cards {
+.smallCardsSection > .cards {
   display: flex;
   justify-content: space-between;
   width: 100%;
 }
-
-#reviewedSection > .cards {
-  display: flex;
-  justify-content: space-between;
-}
-#reviewedSection > .cards img {
-  width: 81px;
-  height: 116px;
+.smallCardsSection .card {
+  width: 80px;
+  height: 115px;
 }
 
 /* --- */
