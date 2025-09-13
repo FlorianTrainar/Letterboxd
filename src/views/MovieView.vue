@@ -5,6 +5,8 @@ import axios from 'axios'
 import InteractionForm from '@/components/InteractionForm.vue'
 import ReviewForm from '@/components/ReviewForm.vue'
 
+import { fakeReviews, fakeReviews2 } from '@/assets/JS/reviewSample'
+
 import { useAuth } from '@/assets/JS/useAuth'
 import { useModalStore } from '@/assets/JS/modalStore'
 const auth = useAuth()
@@ -43,7 +45,14 @@ const showReviewForm = ref(false)
 const handleReviewForm = () => {
   showReviewForm.value = true
 }
-// console.log('loggedIn initial:', auth.loggedIn)
+
+// Random sample reviews
+function getRandomItems(array, count) {
+  const shuffled = array.sort(() => 0.5 - Math.random())
+  return shuffled.slice(0, count)
+}
+const randomReviews = computed(() => getRandomItems(fakeReviews, 4))
+const randomReviews2 = computed(() => getRandomItems(fakeReviews2, 4))
 
 onMounted(async () => {
   // console.log(activeTab.value)
@@ -90,10 +99,10 @@ onMounted(async () => {
   }
 })
 
-const starIcon = (i) => {
-  if (movieRate.value >= i) {
+const starIcon = (i, rate) => {
+  if (rate >= i) {
     return ['fas', 'star'] // pleine
-  } else if (movieRate.value >= i - 0.5) {
+  } else if (rate >= i - 0.5) {
     return ['fas', 'star-half-stroke'] // demi-étoile
   } else {
     return ['far', 'star'] // vide
@@ -144,6 +153,38 @@ const finalRevenue = computed(() => {
           v-bind:src="`https://image.tmdb.org/t/p/w500${movieInfos.poster_path}`"
           :alt="movieInfos.title"
         />
+        <section class="whereToWatchSection">
+          <div>
+            <p>WHERE TO WATCH</p>
+          </div>
+          <div>
+            <div>
+              <p>Amazon US</p>
+              <button>RENT</button>
+              <button>BUY</button>
+            </div>
+            <div>
+              <p>Apple TV FR</p>
+              <button>RENT</button>
+              <button>BUY</button>
+            </div>
+            <div>
+              <p>Netflix</p>
+              <button>RENT</button>
+              <button>BUY</button>
+            </div>
+            <div>
+              <p>Youtube FR</p>
+              <button>RENT</button>
+              <button>BUY</button>
+            </div>
+            <div>
+              <p>Disney +</p>
+              <button>RENT</button>
+              <button>BUY</button>
+            </div>
+          </div>
+        </section>
       </div>
 
       <div class="mainZone">
@@ -157,7 +198,9 @@ const finalRevenue = computed(() => {
           </p>
         </section>
 
+        <!-- MAIN BLOCK -->
         <div class="mainBlock">
+          <!-- MAIN LEFT -->
           <div class="leftColumn">
             <p>{{ movieInfos.tagline }}</p>
             <p>{{ movieInfos.overview }}</p>
@@ -330,6 +373,8 @@ const finalRevenue = computed(() => {
               </div>
             </div>
           </div>
+
+          <!-- MAIN RIGHT -->
           <section class="rightColumn">
             <div>
               <div class="globalBlock loggedOutBlock" v-if="!loggedIn">
@@ -352,12 +397,79 @@ const finalRevenue = computed(() => {
             </div>
             <div class="globalStars">
               <div>
-                <font-awesome-icon v-for="i in 5" :key="i" :icon="starIcon(i)" />
+                <font-awesome-icon v-for="i in 5" :key="i" :icon="starIcon(i, movieRate)" />
               </div>
               <p>{{ Math.floor(movieRate * 10) / 10 }}</p>
             </div>
           </section>
         </div>
+
+        <section class="reviewSection">
+          <h3 class="sectionTitle">POPULAR REVIEWS</h3>
+          <div class="reviewBlock" v-for="review in randomReviews" :key="review">
+            <div class="profile">
+              <font-awesome-icon :icon="['fas', 'user']" />
+            </div>
+
+            <div class="rightBlock">
+              <div class="reviewTitle">
+                <p><span>Review by</span> {{ review.nameSample }}</p>
+                <div>
+                  <font-awesome-icon
+                    v-for="i in 5"
+                    :key="i"
+                    :icon="starIcon(i, review.rateSample)"
+                    class="star"
+                  />
+                </div>
+                <p v-if="review.likedSample">
+                  <font-awesome-icon :icon="['fas', 'heart']" class="heart" />
+                </p>
+              </div>
+              <div>
+                <p>
+                  {{ review.reviewSample }}
+                </p>
+              </div>
+              <div>
+                <p>{{ review.dateSample }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="reviewSection">
+          <h3 class="sectionTitle">RECENT REVIEWS</h3>
+          <div class="reviewBlock" v-for="review in randomReviews2" :key="review">
+            <div class="profile">
+              <font-awesome-icon :icon="['fas', 'user']" />
+            </div>
+
+            <div class="rightBlock">
+              <div class="reviewTitle">
+                <p><span>Review by</span> {{ review.nameSample }}</p>
+                <div>
+                  <font-awesome-icon
+                    v-for="i in 5"
+                    :key="i"
+                    :icon="starIcon(i, review.rateSample)"
+                    class="star"
+                  />
+                </div>
+                <p v-if="review.likedSample">
+                  <font-awesome-icon :icon="['fas', 'heart']" class="heart" />
+                </p>
+              </div>
+              <div>
+                <p>
+                  {{ review.reviewSample }}
+                </p>
+              </div>
+              <div>
+                <p>{{ review.dateSample }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
 
@@ -382,11 +494,46 @@ const finalRevenue = computed(() => {
 
 /* LEFT ZONE */
 
+.posterZone {
+  position: sticky;
+  top: 30px;
+  align-self: flex-start;
+}
 .posterZone > img {
   width: 230px;
   height: 345px;
   border-radius: 10px;
   box-shadow: 0 0 2px black;
+  margin-bottom: 30px;
+}
+
+.whereToWatchSection {
+  border: 1px solid var(--background-color2-);
+  border-radius: 4px;
+}
+.whereToWatchSection > div:first-of-type {
+  background-color: var(--background-color3-);
+  padding: 10px;
+}
+.whereToWatchSection > div:last-of-type {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.whereToWatchSection > div:last-of-type > div {
+  border-bottom: 1px solid var(--background-color2-);
+  display: flex;
+  gap: 5px;
+  padding-bottom: 4px;
+}
+.whereToWatchSection > div:last-of-type > div:last-of-type {
+  border-bottom: none;
+}
+.whereToWatchSection button {
+  background-color: var(--background-color3-);
+  color: var(--font-color3-);
+  font-size: 10px;
 }
 
 /* MAIN ZONE */
@@ -411,7 +558,7 @@ const finalRevenue = computed(() => {
 .mainBlock {
   display: flex;
   gap: 50px;
-  margin-bottom: 60px;
+  margin-bottom: 30px;
 }
 
 /* Left Column*/
@@ -600,5 +747,55 @@ const finalRevenue = computed(() => {
 .fade-leave-from {
   opacity: 1;
   transform: scale(1) translate(-50%, -50%);
+}
+
+/* REVIEW */
+
+.reviewSection {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30px;
+}
+
+.reviewBlock {
+  display: flex;
+  gap: 20px;
+  border-bottom: solid 1px var(--background-color2-);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+.reviewBlock:last-of-type {
+  border: none;
+}
+
+.reviewBlock > .profile {
+  border: solid 1px var(--background-color2-);
+  background-color: var(--background-color3-);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reviewBlock > .profile > svg {
+  font-size: 30px;
+}
+
+.reviewBlock > .rightBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+.reviewTitle {
+  display: flex;
+  gap: 10px;
+}
+.reviewTitle .heart {
+  color: var(--orange-);
+}
+.reviewTitle .star {
+  color: var(--green-);
 }
 </style>

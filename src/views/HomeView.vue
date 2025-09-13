@@ -66,7 +66,7 @@ onMounted(async () => {
       </div>
       <section class="bigCardsSection">
         <div class="sectionTitle" v-if="loggedIn">
-          <p>NEW ON LETTERBOXD</p>
+          <h3>NEW ON LETTERBOXD</h3>
           <span>
             <font-awesome-icon :icon="['fas', 'bolt']" />
             YOUR ACTIVITY</span
@@ -92,8 +92,8 @@ onMounted(async () => {
 
       <section class="smallCardsSection">
         <div class="sectionTitle">
-          <p>JUST REVIEWD...</p>
-          <p>2,000,000 films watched</p>
+          <h3>JUST REVIEWD...</h3>
+          <h3>2,000,000 films watched</h3>
         </div>
         <div class="cards">
           <div class="card" v-for="movies in movieList.slice(7, 19)" :key="movies">
