@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 
@@ -9,26 +9,107 @@ const results = ref([])
 const loading = ref(false)
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
 
+const filter = ref('all') // valeurs possibles : 'all', 'films', 'persons'
+
+const filteredResults = computed(() => {
+  if (filter.value === 'all') return results.value
+  if (filter.value === 'films') return results.value.filter((item) => item.type === 'movie')
+  if (filter.value === 'persons') return results.value.filter((item) => item.type === 'person')
+  return results.value
+})
+
 async function fetchResults() {
   if (!query.value) return
 
   loading.value = true
+
   try {
-    const response = await axios.get('https://api.themoviedb.org/3/search/movie', {
+    // 1. 🔍 Recherche de films
+    const movieRes = await axios.get('https://api.themoviedb.org/3/search/movie', {
       params: {
         api_key: apiKey,
         query: query.value,
         page: 1,
       },
     })
-    console.log('Réponse TMDB :', response.data) // ← Vérifie la structure
 
-    results.value = response.data.results.sort((a, b) => b.popularity - a.popularity).slice(0, 20)
+    const movieResultsRaw = movieRes.data.results
+      .sort((a, b) => b.popularity - a.popularity)
+      .slice(0, 10)
+
+    // 💡 Enrichir les films avec leur réalisateur
+    const enrichedMovieResults = await Promise.all(
+      movieResultsRaw.map(async (movie) => {
+        const director = await fetchDirector(movie.id)
+        return {
+          ...movie,
+          type: 'movie',
+          director,
+        }
+      }),
+    )
+
+    // 2. 🔍 Recherche de personnes
+    const personRes = await axios.get('https://api.themoviedb.org/3/search/person', {
+      params: {
+        api_key: apiKey,
+        query: query.value,
+        page: 1,
+      },
+    })
+
+    const roleTranslation = {
+      Acting: 'Acteur / Actrice',
+      Directing: 'Réalisateur / Réalisatrice',
+      Writing: 'Scénariste',
+      Production: 'Producteur / Productrice',
+      Sound: 'Compositeur / Compositrice',
+    }
+
+    const rawPersonResults = personRes.data.results.filter(
+      (person) => person.known_for_department !== 'Camera',
+    )
+
+    // Supprimer les doublons de personnes par ID
+    const uniquePersonsMap = new Map()
+
+    for (const person of rawPersonResults) {
+      if (!uniquePersonsMap.has(person.id)) {
+        uniquePersonsMap.set(person.id, {
+          ...person,
+          type: 'person',
+          mainRole: roleTranslation[person.known_for_department] || person.known_for_department,
+        })
+      }
+    }
+
+    const personResults = Array.from(uniquePersonsMap.values())
+      .sort((a, b) => b.popularity - a.popularity)
+      .slice(0, 4)
+
+    // 3. ✅ Fusion des résultats
+    results.value = [...enrichedMovieResults, ...personResults]
   } catch (e) {
     console.error(e)
     results.value = []
   } finally {
     loading.value = false
+  }
+}
+
+async function fetchDirector(movieId) {
+  try {
+    const { data } = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
+      params: {
+        api_key: apiKey,
+        language: 'fr-FR',
+      },
+    })
+    const director = data.crew.find((person) => person.job === 'Director')
+    return director ? { name: director.name, id: director.id } : { name: 'Unknown', id: null }
+  } catch (e) {
+    console.error('Erreur fetchDirector', e)
+    return { name: 'Unknown', id: null }
   }
 }
 
@@ -48,29 +129,65 @@ watch(
     <div class="headerBackground"></div>
     <div class="wrapper">
       <section class="resultSec">
-        <div class="sectionTitle">SHOWING MATCHES FOR "{{ query.toUpperCase() }}"</div>
+        <div class="sectionTitle">
+          <p>SHOWING MATCHES FOR "{{ query.toUpperCase() }}" in :</p>
+          <button @click="filter = 'films'" :class="{ active: filter === 'films' }">Films</button>
+          <button @click="filter = 'persons'" :class="{ active: filter === 'persons' }">
+            Person
+          </button>
+          <button @click="filter = 'all'" :class="{ active: filter === 'all' }">All</button>
+        </div>
 
         <div v-if="loading">Chargement...</div>
         <div v-else-if="results.length === 0">Aucun résultat trouvé...</div>
 
         <div class="mainZone" v-else>
-          <div class="movieBlock" v-for="movie in results" :key="movie.id">
-            <RouterLink :to="{ name: 'movie', params: { id: movie.id } }">
-              <div class="card">
-                <img v-bind:src="`https://image.tmdb.org/t/p/w500${movie.poster_path}`" />
-              </div>
-            </RouterLink>
-            <div class="info">
-              <RouterLink :to="{ name: 'movie', params: { id: movie.id } }">
-                <h2>
-                  {{ movie.title }}
-                  <span> {{ movie.release_date ? movie.release_date.slice(0, 4) : 'N/A' }}</span>
-                </h2>
+          <div class="movieBlock" v-for="item in filteredResults" :key="item.id + '-' + item.type">
+            <!-- 🎬 Si c’est un film -->
+            <template v-if="item.type === 'movie'">
+              <RouterLink :to="{ name: 'movie', params: { id: item.id } }">
+                <div class="card">
+                  <img :src="`https://image.tmdb.org/t/p/w500${item.poster_path}`" />
+                </div>
               </RouterLink>
-              <p>{{ movie.overview }}</p>
-              <p>Directed by DIRECTOR</p>
-            </div>
-            <!-- {{ movie }} -->
+              <div class="info">
+                <RouterLink :to="{ name: 'movie', params: { id: item.id } }">
+                  <h2>
+                    {{ item.title }}
+                    <span>
+                      {{ item.release_date ? item.release_date.slice(0, 4) : 'N/A' }}
+                    </span>
+                  </h2>
+                </RouterLink>
+                <p>{{ item.overview }}</p>
+                <p>
+                  Directed by
+                  <RouterLink
+                    v-if="item.director && item.director.id"
+                    :to="{ name: 'person', params: { id: item.director.id } }"
+                    class="dirLink"
+                  >
+                    {{ item.director.name }}
+                  </RouterLink>
+                  <span v-else>{{ item.director?.name || 'Unknown' }}</span>
+                </p>
+              </div>
+            </template>
+
+            <!-- 👤 Si c’est une personne -->
+            <template v-else-if="item.type === 'person'">
+              <RouterLink :to="{ name: 'person', params: { id: item.id } }">
+                <div class="card">
+                  <img :src="`https://image.tmdb.org/t/p/w500${item.profile_path}`" />
+                </div>
+              </RouterLink>
+              <div class="info">
+                <RouterLink :to="{ name: 'person', params: { id: item.id } }">
+                  <h2>{{ item.name }}</h2>
+                </RouterLink>
+                <p>{{ item.mainRole }}</p>
+              </div>
+            </template>
           </div>
         </div>
       </section>
@@ -108,6 +225,12 @@ watch(
 }
 .movieBlock a {
   text-decoration: none;
+}
+.dirLink {
+  color: var(--font-color1-);
+}
+.dirLink:hover {
+  color: var(--blue-);
 }
 
 .movieBlock h2 {

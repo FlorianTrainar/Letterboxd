@@ -130,8 +130,8 @@ onMounted(() => {
           <span v-if="movie.release_date">{{ props.movie.release_date?.slice(0, 4) }}</span>
         </h2>
         <textarea rows="15" col="10" placeholder="add a review" v-model="review" />
-        <div>
-          <button @click="deleteReview">delete</button>
+        <div class="buttonArea">
+          <button id="deleteButton" @click="deleteReview">delete</button>
           <button @click="submitReview">save</button>
         </div>
       </div>
@@ -192,14 +192,20 @@ onMounted(() => {
   font-size: 20px;
   color: var(--font-color2-);
 }
-
-.rightBlock button {
+.buttonArea {
+  display: flex;
+  justify-content: flex-end;
+}
+.buttonArea > button {
   align-self: flex-end;
   margin-right: 10px;
   background-color: var(--green-);
   color: var(--font-color1-);
   padding: 6px 12px;
   font-size: 16px;
+}
+#deleteButton {
+  background-color: var(--background-color4-);
 }
 
 .main textarea {

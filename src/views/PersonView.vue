@@ -9,7 +9,9 @@ const personId = route.params.id
 
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
 const person = ref(null)
-const credits = ref([])
+const allCredits = ref([]) // crédits complets
+const credits = ref([]) // crédits filtrés selon le rôle
+
 const loading = ref(true)
 const error = ref(null)
 
@@ -21,6 +23,24 @@ function setRole(role) {
   fetchCreditsForRole(role)
 }
 
+const jobMap = {
+  ACTOR: { section: 'cast', matchField: 'character' },
+  DIRECTOR: { section: 'crew', jobs: ['Director'] },
+  WRITER: { section: 'crew', jobs: ['Writer', 'Screenplay', 'Author'] },
+  PRODUCER: { section: 'crew', jobs: ['Producer', 'Executive Producer'] },
+  COMPOSER: {
+    section: 'crew',
+    jobs: ['Original Music Composer', 'Music', 'Additional Music', 'Songs'],
+  },
+}
+const departmentToRoleMap = {
+  Acting: 'ACTOR',
+  Directing: 'DIRECTOR',
+  Writing: 'WRITER',
+  Production: 'PRODUCER',
+  Sound: 'COMPOSER',
+}
+
 async function fetchArtistData() {
   loading.value = true
   try {
@@ -28,7 +48,7 @@ async function fetchArtistData() {
       axios.get(`https://api.themoviedb.org/3/person/${personId}`, {
         params: {
           api_key: apiKey,
-          language: 'fr', // Tu peux ajuster selon la langue de l'app
+          language: 'fr',
         },
       }),
       axios.get(`https://api.themoviedb.org/3/person/${personId}/combined_credits`, {
@@ -40,8 +60,18 @@ async function fetchArtistData() {
     ])
 
     person.value = personRes.data
-    console.log(person.value)
-    credits.value = creditsRes.data.cast.concat(creditsRes.data.crew)
+    allCredits.value = creditsRes.data.cast.concat(creditsRes.data.crew)
+
+    // Détection automatique du rôle principal
+    const mainDept = person.value.known_for_department
+    const departmentToRoleMap = {
+      Acting: 'ACTOR',
+      Directing: 'DIRECTOR',
+      Writing: 'WRITER',
+      Production: 'PRODUCER',
+      Sound: 'COMPOSER',
+    }
+    roleSelected.value = departmentToRoleMap[mainDept] || 'ACTOR'
   } catch (err) {
     console.error(err)
     error.value = 'Impossible de charger les données de l’artiste.'
@@ -53,25 +83,26 @@ async function fetchArtistData() {
 async function fetchCreditsForRole(role) {
   loading.value = true
   try {
-    const res = await axios.get(
-      `https://api.themoviedb.org/3/person/${personId}/combined_credits`,
-      {
-        params: {
-          api_key: apiKey,
-          language: 'fr',
-        },
-      },
-    )
-
-    let cast = res.data.cast || []
-    let crew = res.data.crew || []
+    const roleConfig = jobMap[role]
+    const baseCredits = allCredits.value
 
     let filtered = []
 
     if (role === 'ACTOR') {
-      filtered = cast
+      filtered = baseCredits.filter(
+        (credit) =>
+          credit.media_type === 'movie' &&
+          typeof credit.character === 'string' &&
+          credit.character.trim() !== '' &&
+          credit.character.trim().toLowerCase() !== 'self' &&
+          !['Himself', 'Herself'].includes(credit.character.trim()) &&
+          !credit.job,
+      )
     } else {
-      filtered = crew.filter((credit) => credit.job?.toUpperCase() === role)
+      filtered = baseCredits.filter(
+        (credit) =>
+          credit.media_type === 'movie' && credit.job && roleConfig.jobs.includes(credit.job),
+      )
     }
 
     credits.value = filtered
@@ -79,7 +110,7 @@ async function fetchCreditsForRole(role) {
       .sort((a, b) => b.vote_count - a.vote_count)
   } catch (err) {
     console.error(err)
-    error.value = 'Impossible de charger les crédits.'
+    error.value = 'Impossible de filtrer les crédits.'
     credits.value = []
   } finally {
     loading.value = false
@@ -148,6 +179,11 @@ onMounted(async () => {
         </div>
         <div class="rightBlock">
           <img v-if="person" v-bind:src="`https://image.tmdb.org/t/p/w500${person.profile_path}`" />
+          <div>
+            <h2>{{ person?.name }}</h2>
+            <h3>{{ person?.birthday }}</h3>
+            <h3>{{ person?.place_of_birth }}</h3>
+          </div>
           <p>{{ person?.biography }}</p>
         </div>
       </div>
@@ -251,5 +287,9 @@ onMounted(async () => {
   height: 345px;
   border-radius: 2%;
   border: solid 2px var(--background-color2-);
+}
+.rightBlock h2 {
+  margin-bottom: 10px;
+  color: var(--font-color1-);
 }
 </style>

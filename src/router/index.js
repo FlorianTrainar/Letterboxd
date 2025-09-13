@@ -31,12 +31,7 @@ const router = createRouter({
       component: SearchView,
       props: true,
     },
-    {
-      path: '/search',
-      name: 'search',
-      component: SearchView,
-      props: true,
-    },
+
     {
       path: '/person/:id',
       name: 'person',

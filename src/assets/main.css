@@ -167,15 +167,3 @@ section {
   justify-content: space-between;
   width: 100%;
 }
-.smallCardsSection > .cards {
-  display: flex;
-  justify-content: space-between;
-}
-.smallCardsSection > .cards {
-  width: 81px;
-  height: 116px;
-}
-.smallCardsSection > .cards img {
-  width: 81px;
-  height: 116px;
-}

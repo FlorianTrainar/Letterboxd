@@ -33,7 +33,7 @@ const onReviewSaved = () => {
 }
 
 const activeTab = ref('CAST')
-const tabs = ['CAST', 'CREW', 'DETAILS', 'GENRES', 'RELEASES']
+const tabs = ['CAST', 'CREW', 'DETAILS', 'GENRES', 'BOX OFFICE']
 
 const props = defineProps({
   id: { required: true },
@@ -53,6 +53,7 @@ onMounted(async () => {
     })
 
     movieInfos.value = movieData
+    console.log(movieInfos.value)
     releaseYear.value = movieData.release_date.slice(0, 4)
     movieRate.value = movieData.vote_average / 2
     // console.log('movieData >>>', movieRate.value)
@@ -68,7 +69,7 @@ onMounted(async () => {
       },
     )
 
-    const cast = creditsData.cast.slice(0, 6)
+    const cast = creditsData.cast.slice(0, 20)
 
     movieCrew.value.directors = creditsData.crew.filter((person) => person.job === 'Director')
 
@@ -98,6 +99,34 @@ const starIcon = (i) => {
     return ['far', 'star'] // vide
   }
 }
+
+const finalDate = computed(() => {
+  if (!movieInfos.value?.release_date) return ''
+  const date = new Date(movieInfos.value.release_date)
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+})
+
+const finalBudget = computed(() => {
+  if (!movieInfos.value?.budget) return 'Non renseigné'
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(movieInfos.value.budget)
+})
+
+const finalRevenue = computed(() => {
+  if (!movieInfos.value?.revenue) return 'Non renseigné'
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(movieInfos.value.revenue)
+})
 </script>
 <template>
   <main>
@@ -145,59 +174,159 @@ const starIcon = (i) => {
 
             <div class="tabContent">
               <div v-if="activeTab === 'CAST'">
-                <div class="artistLink" v-for="actor in topActors" :key="actor.name">
+                <div class="value" v-for="actor in topActors" :key="actor.name">
                   <RouterLink :to="{ name: 'person', params: { id: actor.id } }">
                     {{ actor.name }}
                   </RouterLink>
                 </div>
               </div>
-              <div id="crewTab" v-if="activeTab === 'CREW'">
-                <div>
-                  <p>DIRECTOR</p>
-                  <div class="dots"></div>
-                  <div class="names" v-if="movieCrew.directors">
-                    <button v-for="directors in movieCrew.directors" :key="directors.id">
-                      {{ directors.name }}
-                    </button>
+
+              <div class="displayedTab" v-if="activeTab === 'CREW'">
+                <div v-if="movieCrew.directors">
+                  <div class="key">
+                    <span>DIRECTOR</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div class="value" v-for="person in movieCrew.directors" :key="person.id">
+                      <RouterLink :to="{ name: 'person', params: { id: person.id } }">
+                        {{ person.name }}
+                      </RouterLink>
+                    </div>
                   </div>
                 </div>
                 <div v-if="movieCrew.writers">
-                  <p>WRITERS</p>
-                  <div class="dots"></div>
-                  <div class="names">
-                    <button v-for="writers in movieCrew.writers" :key="writers.id">
-                      {{ writers.name }}
-                    </button>
+                  <div class="key">
+                    <span>WRITER</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div class="value" v-for="person in movieCrew.writers" :key="person.id">
+                      <RouterLink :to="{ name: 'person', params: { id: person.id } }">
+                        {{ person.name }}
+                      </RouterLink>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <p>PRODUCERS</p>
-                  <div class="dots"></div>
-                  <div class="names" v-if="movieCrew.producers">
-                    <button v-for="producers in movieCrew.producers" :key="producers.id">
-                      {{ producers.name }}
-                    </button>
+                <div v-if="movieCrew.producers">
+                  <div class="key">
+                    <span>PRODUCERS</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div class="value" v-for="person in movieCrew.producers" :key="person.id">
+                      <RouterLink :to="{ name: 'person', params: { id: person.id } }">
+                        {{ person.name }}
+                      </RouterLink>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <p>COMPOSERS</p>
-                  <div class="dots"></div>
-                  <div class="names" v-if="movieCrew.composers">
-                    <button v-for="composers in movieCrew.composers" :key="composers.id">
-                      {{ composers.name }}
-                    </button>
+                <div v-if="movieCrew.composers">
+                  <div class="key">
+                    <span>COMPOSERS</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div class="value" v-for="person in movieCrew.composers" :key="person.id">
+                      <RouterLink :to="{ name: 'person', params: { id: person.id } }">
+                        {{ person.name }}
+                      </RouterLink>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div v-if="activeTab === 'DETAILS'">
-                <p>En construction...</p>
+              <div class="displayedTab" v-if="activeTab === 'DETAILS'">
+                <div v-if="movieInfos.production_companies">
+                  <div class="key">
+                    <span>STUDIOS</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div
+                      class="value"
+                      v-for="studio in movieInfos.production_companies"
+                      :key="studio.id"
+                    >
+                      <p>
+                        {{ studio.name }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="movieInfos.production_countries">
+                  <div class="key">
+                    <span>COUNTRY</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div
+                      class="value"
+                      v-for="country in movieInfos.production_countries"
+                      :key="country.id"
+                    >
+                      <p>
+                        {{ country.name }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="movieInfos?.release_date">
+                  <div class="key">
+                    <span>RELEASE</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div class="value">
+                      <p>
+                        {{ finalDate }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div v-if="activeTab === 'GENRES'">
-                <p>En construction...</p>
+              <div class="displayedTab" v-if="activeTab === 'GENRES'">
+                <div v-if="movieInfos.genres">
+                  <div class="key">
+                    <span>GENRES</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div class="value" v-for="genre in movieInfos.genres" :key="genre.id">
+                      <p>
+                        {{ genre.name }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div v-if="activeTab === 'RELEASES'">
-                <p>En construction...</p>
+              <div class="displayedTab" v-if="activeTab === 'BOX OFFICE'">
+                <div v-if="movieInfos?.budget">
+                  <div class="key">
+                    <span>BUDGET</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div class="value">
+                      <p>
+                        {{ finalBudget }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="movieInfos?.revenue">
+                  <div class="key">
+                    <span>REVENUE</span>
+                    <div class="dots"></div>
+                  </div>
+                  <div class="valueWrapper">
+                    <div class="value">
+                      <p>
+                        {{ finalRevenue }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -267,6 +396,7 @@ const starIcon = (i) => {
   gap: 10px;
   align-items: end;
   flex-wrap: wrap;
+  margin-bottom: 25px;
 }
 .movieTitle span {
   text-decoration: underline;
@@ -321,52 +451,67 @@ const starIcon = (i) => {
 .tabSelector > button.activeTab {
   color: white;
 }
+
+/*  */
+
 .tabContent > div {
   display: flex;
+  align-items: center;
   gap: 6px;
   flex-wrap: wrap;
 }
-.artistLink {
-  background-color: var(--background-color3-);
-  width: fit-content;
-  padding: 4px 6px;
-  border-radius: 4px;
-}
-.artistLink > a {
-  color: var(--font-color2-);
-  text-decoration: none;
-  font-size: 14px;
 
-  padding: 6px;
-  margin: 2px;
-}
 .tabContent a:hover {
   color: var(--font-color1-);
 }
 
-#crewTab {
+.displayedTab {
   width: 100%;
   /* border: solid 1px red; */
 }
-#crewTab p {
-  padding-top: 6px;
-}
-#crewTab > div {
-  /* border: solid 1px blue; */
+.displayedTab > div {
   display: flex;
-  gap: 10px;
   align-items: flex-start;
+  gap: 10px;
   margin-bottom: 10px;
+  width: 100%;
 }
-#crewTab .dots {
+.key {
+  /* border: solid 1px yellow; */
+  width: 40%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+}
+.key > span {
+  line-height: 1; /* Évite un décalage vertical */
+  white-space: nowrap;
+}
+.key > .dots {
   flex: 1;
   border-bottom: 1px dotted var(--font-color3-);
-  height: 22px;
+  height: 10px;
 }
-#crewTab .names {
+.valueWrapper {
   width: 60%;
   display: flex;
+
   flex-wrap: wrap;
+  gap: 4px;
+}
+.value {
+  background-color: var(--background-color3-);
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+.value > a,
+.value > p {
+  color: var(--font-color2-);
+  text-decoration: none;
+  font-size: 14px;
+  margin: 2px;
 }
 
 /* Right Column*/
