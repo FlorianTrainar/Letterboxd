@@ -124,6 +124,10 @@ Button:hover {
   width: 162px;
   height: 231px;
 }
+.smallCard {
+  width: 76px;
+  height: 111px;
+}
 .card:hover {
   cursor: pointer;
 }

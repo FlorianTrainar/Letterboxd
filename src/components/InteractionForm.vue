@@ -151,7 +151,7 @@ const saveInteractionField = async (field, value) => {
     if (field === 'review') hasReview.value = true
 
     // ✅ Watched devient true automatiquement
-    if (field !== 'watched' && !currentInteraction.value.watched) {
+    if (field !== 'watched' && field !== 'watchlist' && !currentInteraction.value.watched) {
       // ⚠️ Attendre avant d’appeler pour éviter les conflits
       setTimeout(() => {
         saveInteractionField('watched', true)
