@@ -39,6 +39,10 @@ const router = createRouter({
       props: true,
     },
   ],
+  scrollBehavior(to, from, savedPosition) {
+    // Toujours remonter en haut de la page
+    return { top: 0 }
+  },
 })
 
 export default router

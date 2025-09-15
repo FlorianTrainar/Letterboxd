@@ -2,6 +2,7 @@
 
 * {
   box-sizing: border-box;
+  font-family: 'graphik', sans-serif;
 }
 
 :root {
@@ -18,6 +19,16 @@
   --orange-: #ee7000;
   --blue-: #309ce4;
   --header-height-: 75px;
+
+  --graphik-: 'graphik', sans-serif;
+  --tiempos-: 'tiempos', sans-serif;
+}
+.tiempo {
+  font-family: var(--tiempos-);
+}
+.tiempoBold {
+  font-family: var(--tiempos-);
+  font-weight: bold;
 }
 .headerBackground {
   height: var(--header-height-);
@@ -34,6 +45,7 @@
 }
 
 main {
+  min-height: 100vh;
   background-color: var(--background-color5-);
   color: var(--font-color2-);
   display: flex;
@@ -48,9 +60,10 @@ main {
   margin-bottom: 20px;
 }
 .cover > img {
-  object-fit: contain;
+  object-fit: cover;
+  object-position: top;
   width: 100%;
-  height: 600px;
+  height: 480px;
 
   -webkit-mask-image:
     linear-gradient(
@@ -98,17 +111,35 @@ main {
 h1 {
   color: var(--font-color1-);
   font-size: 35px;
-  font-weight: bold;
 }
 h2 {
   color: var(--font-color2-);
   font-size: 28px;
+}
+.tiempoTitle {
+  font-family: var(--tiempos-);
+  font-weight: bold;
+  font-size: 24px;
+}
+.tiempoTitleSpan {
+  color: var(--font-color2-);
+  font-family: var(--graphik-);
+  font-size: 14px;
 }
 h3 {
   font-size: 16px;
 }
 p {
   font-size: 16px;
+  line-height: 25px;
+}
+
+a {
+  text-decoration: none;
+  color: var(--font-color1-);
+}
+a:hover {
+  color: var(--blue-);
 }
 button {
   border: none;
@@ -154,14 +185,45 @@ Button:hover {
   object-fit: fill;
 }
 
+.tooltip {
+  position: absolute;
+  bottom: 104%; /* au-dessus de l'image */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--background-color2-);
+  color: var(--font-color2-);
+  font-size: 12px;
+  font-weight: bold;
+
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+
+  pointer-events: none;
+  z-index: 10;
+}
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--background-color2-) transparent transparent transparent;
+}
+.card:hover .tooltip {
+  opacity: 1;
+}
+
 /* Sections */
 
 section {
   margin-bottom: 60px;
 }
 .sectionTitle {
-  display: flex;
-  justify-content: space-between;
   border-bottom: var(--font-color3-) 1px solid;
   margin-bottom: 20px;
   padding-bottom: 4px;
@@ -170,4 +232,16 @@ section {
   display: flex;
   justify-content: space-between;
   width: 100%;
+}
+
+.heartIcon {
+  color: var(--orange-);
+}
+.starIcon {
+  color: var(--green-);
+}
+
+.pageLoader {
+  text-align: center;
+  margin-top: 20px;
 }

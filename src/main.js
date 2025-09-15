@@ -7,6 +7,8 @@ import { createPinia } from 'pinia'
 
 import { useAuth } from './assets/JS/useAuth'
 
+import './assets/fonts/font.css'
+
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {

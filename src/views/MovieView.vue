@@ -8,9 +8,15 @@ import ReviewForm from '@/components/ReviewForm.vue'
 import { fakeReviews, fakeReviews2 } from '@/assets/JS/reviewSample'
 
 import { useAuth } from '@/assets/JS/useAuth'
-import { useModalStore } from '@/assets/JS/modalStore'
 const auth = useAuth()
+
+import { useModalStore } from '@/assets/JS/modalStore'
 const modalStore = useModalStore()
+
+import { useLoading } from '@/assets/JS/useLoading'
+const { isLoading: displayLoadingMessage, loadingMessage, startLoading, stopLoading } = useLoading()
+
+import { starIcon } from '@/assets/JS/starIcon'
 
 const loggedIn = computed(() => auth.loggedIn.value)
 
@@ -55,7 +61,7 @@ const randomReviews = computed(() => getRandomItems(fakeReviews, 4))
 const randomReviews2 = computed(() => getRandomItems(fakeReviews2, 4))
 
 onMounted(async () => {
-  // console.log(activeTab.value)
+  startLoading()
   try {
     const { data: movieData } = await axios.get(`https://api.themoviedb.org/3/movie/${props.id}`, {
       params: { api_key: apiKey, language: 'fr-FR' },
@@ -96,18 +102,10 @@ onMounted(async () => {
     topActors.value = cast
   } catch (error) {
     console.error('Erreur crédits >>>', error)
+  } finally {
+    stopLoading()
   }
 })
-
-const starIcon = (i, rate) => {
-  if (rate >= i) {
-    return ['fas', 'star'] // pleine
-  } else if (rate >= i - 0.5) {
-    return ['fas', 'star-half-stroke'] // demi-étoile
-  } else {
-    return ['far', 'star'] // vide
-  }
-}
 
 const finalDate = computed(() => {
   if (!movieInfos.value?.release_date) return ''
@@ -147,6 +145,10 @@ const finalRevenue = computed(() => {
       />
     </div>
     <div class="wrapper">
+      <div class="pageLoader" v-if="displayLoadingMessage">
+        <h2>{{ loadingMessage }}</h2>
+      </div>
+
       <div class="posterZone">
         <img
           v-if="movieInfos && movieInfos.poster_path"
@@ -189,7 +191,7 @@ const finalRevenue = computed(() => {
 
       <div class="mainZone">
         <section class="movieTitle">
-          <h1>{{ movieInfos.title }}</h1>
+          <h1 class="tiempoBold">{{ movieInfos.title }}</h1>
           <p>
             <span>{{ releaseYear }}</span> Directed by
             <span v-for="directors in movieCrew.directors" :key="directors.id">{{
@@ -203,7 +205,7 @@ const finalRevenue = computed(() => {
           <!-- MAIN LEFT -->
           <div class="leftColumn">
             <p>{{ movieInfos.tagline }}</p>
-            <p>{{ movieInfos.overview }}</p>
+            <p class="tiempo">{{ movieInfos.overview }}</p>
             <div class="tabSelector">
               <button
                 v-for="tab in tabs"
@@ -413,21 +415,23 @@ const finalRevenue = computed(() => {
 
             <div class="rightBlock">
               <div class="reviewTitle">
-                <p><span>Review by</span> {{ review.nameSample }}</p>
+                <p>
+                  Review by <span>{{ review.nameSample }}</span>
+                </p>
                 <div>
                   <font-awesome-icon
                     v-for="i in 5"
                     :key="i"
                     :icon="starIcon(i, review.rateSample)"
-                    class="star"
+                    class="starIcon"
                   />
                 </div>
                 <p v-if="review.likedSample">
-                  <font-awesome-icon :icon="['fas', 'heart']" class="heart" />
+                  <font-awesome-icon :icon="['fas', 'heart']" class="heartIcon" />
                 </p>
               </div>
               <div>
-                <p>
+                <p class="tiempo">
                   {{ review.reviewSample }}
                 </p>
               </div>
@@ -446,18 +450,20 @@ const finalRevenue = computed(() => {
 
             <div class="rightBlock">
               <div class="reviewTitle">
-                <p><span>Review by</span> {{ review.nameSample }}</p>
-                <div>
+                <p>
+                  Review by <span>{{ review.nameSample }}</span>
+                </p>
+                <div v-if="review.rateSample" class="starsWrapper">
                   <font-awesome-icon
                     v-for="i in 5"
                     :key="i"
                     :icon="starIcon(i, review.rateSample)"
-                    class="star"
+                    class="starIcon"
                   />
                 </div>
-                <p v-if="review.likedSample">
-                  <font-awesome-icon :icon="['fas', 'heart']" class="heart" />
-                </p>
+                <div v-if="review.likedSample" class="heartWrapper">
+                  <font-awesome-icon :icon="['fas', 'heart']" class="heartIcon" />
+                </div>
               </div>
               <div>
                 <p>
@@ -534,6 +540,9 @@ const finalRevenue = computed(() => {
   background-color: var(--background-color3-);
   color: var(--font-color3-);
   font-size: 10px;
+}
+.whereToWatchSection p {
+  font-size: 14px;
 }
 
 /* MAIN ZONE */
@@ -634,6 +643,7 @@ const finalRevenue = computed(() => {
 .key > span {
   line-height: 1; /* Évite un décalage vertical */
   white-space: nowrap;
+  font-size: 14px;
 }
 .key > .dots {
   flex: 1;
@@ -657,7 +667,7 @@ const finalRevenue = computed(() => {
 .value > p {
   color: var(--font-color2-);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   margin: 2px;
 }
 
@@ -790,12 +800,29 @@ const finalRevenue = computed(() => {
 }
 .reviewTitle {
   display: flex;
+  align-items: center;
   gap: 10px;
 }
-.reviewTitle .heart {
-  color: var(--orange-);
+.iconStars,
+.iconHeart {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.reviewTitle .star {
-  color: var(--green-);
+
+.starIcon,
+.heartIcon {
+  font-size: 16px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.reviewTitle p {
+  color: var(--font-color3-);
+}
+
+.reviewTitle span {
+  color: var(--font-color2-);
+  font-weight: bold;
 }
 </style>

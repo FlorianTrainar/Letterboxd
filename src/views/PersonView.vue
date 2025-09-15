@@ -1,10 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
 import axios from 'axios'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
+import { useRoute } from 'vue-router'
 const route = useRoute()
+
+import { useLoading } from '@/assets/JS/useLoading'
+const { isLoading: displayLoadingMessage, loadingMessage, startLoading, stopLoading } = useLoading()
+
 const personId = route.params.id
 
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
@@ -12,7 +15,6 @@ const person = ref(null)
 const allCredits = ref([]) // crédits complets
 const credits = ref([]) // crédits filtrés selon le rôle
 
-const loading = ref(true)
 const error = ref(null)
 
 const roleSelected = ref('ACTOR')
@@ -42,7 +44,7 @@ const departmentToRoleMap = {
 }
 
 async function fetchArtistData() {
-  loading.value = true
+  startLoading()
   try {
     const [personRes, creditsRes] = await Promise.all([
       axios.get(`https://api.themoviedb.org/3/person/${personId}`, {
@@ -76,12 +78,12 @@ async function fetchArtistData() {
     console.error(err)
     error.value = 'Impossible de charger les données de l’artiste.'
   } finally {
-    loading.value = false
+    stopLoading()
   }
 }
 
 async function fetchCreditsForRole(role) {
-  loading.value = true
+  startLoading()
   try {
     const roleConfig = jobMap[role]
     const baseCredits = allCredits.value
@@ -113,7 +115,7 @@ async function fetchCreditsForRole(role) {
     error.value = 'Impossible de filtrer les crédits.'
     credits.value = []
   } finally {
-    loading.value = false
+    stopLoading()
   }
 }
 
@@ -131,12 +133,12 @@ onMounted(async () => {
         <div class="leftBlock">
           <div class="title">
             <h3>FILMS STARRING</h3>
-            <h1>{{ person?.name }}</h1>
+            <h1 class="tiempoTitle">{{ person?.name }}</h1>
           </div>
 
           <div class="roleSelectWrapper">
             <div class="roleSelect">
-              <h3>{{ roleSelected }} <FontAwesomeIcon :icon="['fas', 'chevron-down']" /></h3>
+              <h3>{{ roleSelected }}</h3>
               <div class="roleSelectForm">
                 <button @click="setRole('ACTOR')">
                   Actor <span>{{ number }}</span>
@@ -156,9 +158,13 @@ onMounted(async () => {
               </div>
             </div>
           </div>
+
+          <div class="pageLoader" v-if="displayLoadingMessage">
+            <h2>{{ loadingMessage }}</h2>
+          </div>
+
           <div class="movieList">
-            <div v-if="loading">Chargement…</div>
-            <div v-else-if="credits.length === 0">Aucun résultat trouvé pour ce rôle.</div>
+            <div v-if="credits.length === 0">Aucun résultat trouvé pour ce rôle.</div>
             <div
               class="card"
               v-for="credit in credits"
@@ -173,6 +179,7 @@ onMounted(async () => {
                   "
                   :alt="credit.title || credit.name"
                 />
+                <div class="tooltip">{{ credit.title }}</div>
               </RouterLink>
             </div>
           </div>
@@ -180,11 +187,11 @@ onMounted(async () => {
         <div class="rightBlock">
           <img v-if="person" v-bind:src="`https://image.tmdb.org/t/p/w500${person.profile_path}`" />
           <div>
-            <h2>{{ person?.name }}</h2>
-            <h3>{{ person?.birthday }}</h3>
-            <h3>{{ person?.place_of_birth }}</h3>
+            <h2 class="tiempoTitle">{{ person?.name }}</h2>
+            <h3 class="tiempo">{{ person?.birthday }}</h3>
+            <h3 class="tiempo">{{ person?.place_of_birth }}</h3>
           </div>
-          <p>{{ person?.biography }}</p>
+          <p class="tiempo">{{ person?.biography }}</p>
         </div>
       </div>
     </div>
@@ -220,6 +227,7 @@ onMounted(async () => {
 
   position: relative;
 }
+
 .roleSelector:hover {
   background-color: var(--font-color3-);
 }
@@ -237,9 +245,11 @@ onMounted(async () => {
 }
 .roleSelect h3 {
   color: var(--font-color3-);
+  line-height: 20px;
 }
 .roleSelect:hover h3 {
   color: var(--font-color1-);
+  cursor: pointer;
 }
 .roleSelectForm {
   display: none;
@@ -291,5 +301,9 @@ onMounted(async () => {
 .rightBlock h2 {
   margin-bottom: 10px;
   color: var(--font-color1-);
+}
+.rightBlock p {
+  font-size: 14px;
+  line-height: 16px;
 }
 </style>

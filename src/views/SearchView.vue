@@ -1,15 +1,19 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
 import axios from 'axios'
 
+import { useRoute } from 'vue-router'
 const route = useRoute()
+
+import { useLoading } from '@/assets/JS/useLoading'
+const { isLoading: displayLoadingMessage, loadingMessage, startLoading, stopLoading } = useLoading()
+
 const query = ref(route.query.q || '')
 const results = ref([])
-const loading = ref(false)
+
 const apiKey = import.meta.env.VITE_TMDB_API_KEY
 
-const filter = ref('all') // valeurs possibles : 'all', 'films', 'persons'
+const filter = ref('all')
 
 const filteredResults = computed(() => {
   if (filter.value === 'all') return results.value
@@ -19,9 +23,8 @@ const filteredResults = computed(() => {
 })
 
 async function fetchResults() {
+  startLoading()
   if (!query.value) return
-
-  loading.value = true
 
   try {
     // 1. 🔍 Recherche de films
@@ -93,7 +96,7 @@ async function fetchResults() {
     console.error(e)
     results.value = []
   } finally {
-    loading.value = false
+    stopLoading()
   }
 }
 
@@ -128,18 +131,21 @@ watch(
   <main>
     <div class="headerBackground"></div>
     <div class="wrapper">
+      <div class="pageLoader" v-if="displayLoadingMessage">
+        <h1>{{ loadingMessage }}</h1>
+      </div>
+
       <section class="resultSec">
         <div class="sectionTitle">
-          <p>SHOWING MATCHES FOR "{{ query.toUpperCase() }}" in :</p>
-          <button @click="filter = 'films'" :class="{ active: filter === 'films' }">Films</button>
+          <h3>SHOWING MATCHES FOR "{{ query.toUpperCase() }}" in :</h3>
+          <button @click="filter = 'films'" :class="{ active: filter === 'films' }">FILMS</button>
           <button @click="filter = 'persons'" :class="{ active: filter === 'persons' }">
-            Person
+            PERSON
           </button>
-          <button @click="filter = 'all'" :class="{ active: filter === 'all' }">All</button>
+          <button @click="filter = 'all'" :class="{ active: filter === 'all' }">ALL</button>
         </div>
 
-        <div v-if="loading">Chargement...</div>
-        <div v-else-if="results.length === 0">Aucun résultat trouvé...</div>
+        <div v-if="results.length === 0">Aucun résultat trouvé...</div>
 
         <div class="mainZone" v-else>
           <div class="movieBlock" v-for="item in filteredResults" :key="item.id + '-' + item.type">
@@ -152,14 +158,14 @@ watch(
               </RouterLink>
               <div class="info">
                 <RouterLink :to="{ name: 'movie', params: { id: item.id } }">
-                  <h2>
+                  <h2 class="tiempoTitle">
                     {{ item.title }}
-                    <span>
+                    <span class="tiempoTitleSpan">
                       {{ item.release_date ? item.release_date.slice(0, 4) : 'N/A' }}
                     </span>
                   </h2>
                 </RouterLink>
-                <p>{{ item.overview }}</p>
+                <p class="tiempo">{{ item.overview }}</p>
                 <p>
                   Directed by
                   <RouterLink
@@ -200,6 +206,19 @@ watch(
 }
 .sectionTitle {
   margin-bottom: 0;
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+}
+.sectionTitle > button {
+  background: none;
+  color: var(--font-color2-);
+}
+.sectionTitle > button:hover {
+  color: var(--green-);
+}
+.sectionTitle > button.active {
+  color: var(--font-color1-);
 }
 .mainZone {
   /* border: solid 2px blue; */
@@ -226,6 +245,7 @@ watch(
 .movieBlock a {
   text-decoration: none;
 }
+
 .dirLink {
   color: var(--font-color1-);
 }
@@ -240,8 +260,8 @@ watch(
 .movieBlock h2:hover {
   color: var(--blue-);
 }
-.movieBlock span {
-  font-size: 22px;
-  color: var(--font-color3-);
+.info > p {
+  font-size: 15px;
+  line-height: 17px;
 }
 </style>

@@ -63,6 +63,11 @@ const handleSubmit = async () => {
 
   isSubmitting.value = false
 }
+
+const handleLogout = () => {
+  router.push({ name: 'home' })
+  logout()
+}
 </script>
 <template>
   <header>
@@ -91,7 +96,7 @@ const handleSubmit = async () => {
               <button class="btn">Film</button>
               <button class="btn">Reviews</button>
 
-              <button @click="logout()" class="btn">Sign Out</button>
+              <button @click="handleLogout()" class="btn">Sign Out</button>
             </div>
           </div>
           <font-awesome-icon :icon="['fas', 'bolt']" />
@@ -167,6 +172,8 @@ img {
 
 .headerMenu p {
   font-size: 15px;
+  font-family: var(--graphik-);
+  font-weight: bold;
 }
 .headerMenu button {
   background: none;
@@ -214,6 +221,10 @@ img {
   padding: 4px 6px;
   border-radius: 4px 4px 0 0;
   position: relative;
+}
+.userInfo > svg {
+  align-self: center;
+  margin-bottom: 3px;
 }
 .userIcon {
   border: 1px solid var(--background-color2-);
@@ -286,6 +297,7 @@ img {
   background-color: var(--background-color1-);
   padding: 10px 12px;
 }
+
 .loginForm label {
   color: var(--font-color3-);
 }
@@ -296,12 +308,18 @@ img {
 }
 .loginForm input {
   background-color: var(--background-color2-);
+  color: var(--font-color2-);
+  font-family: var(--tiempos-);
   width: 180px;
   height: 32px;
   border-radius: 4px;
+  outline: none;
 }
-.loginForm > button {
+.loginForm input:focus {
+  background-color: var(--font-color1-);
+  color: var(--background-color1-);
 }
+
 .loginForm > button:first-of-type {
   background: none;
   color: var(--font-color3-);

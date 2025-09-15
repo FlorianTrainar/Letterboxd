@@ -1,0 +1,41 @@
+@font-face {
+  font-family: 'graphik';
+  src:
+    url('./Graphik-semibold/regular.woff2') format('woff2'),
+    url('./Graphik-semibold/regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'graphik';
+  src:
+    url('./Graphik-semibold/bold.woff2') format('woff2'),
+    url('./Graphik-semibold/bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*  */
+
+@font-face {
+  font-family: 'tiempos';
+  src:
+    url('./tiemposRegular/TiemposText-Regular.woff2') format('woff2'),
+    url('./tiemposRegular/TiemposText-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'tiempos';
+  src:
+    url('./Tiempos-semibold/tiemposSB.woff2') format('woff2'),
+    url('./Tiempos-semibold/tiemposSB.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
