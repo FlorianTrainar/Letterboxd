@@ -24,6 +24,7 @@ import {
   faBolt,
   faChevronDown,
   faClock as fasClock,
+  faWarning,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faStar as faStarRegular,
@@ -49,6 +50,7 @@ library.add(
   faChevronDown,
   fasClock,
   farClock,
+  faWarning,
 )
 
 const app = createApp(App).component('font-awesome-icon', FontAwesomeIcon)

@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useModalStore } from '@/assets/JS/modalStore'
 
 import { useAuth } from '@/assets/JS/useAuth'
@@ -93,8 +93,24 @@ const handleLogout = () => {
                 Profile
               </RouterLink>
 
-              <button class="btn">Film</button>
-              <button class="btn">Reviews</button>
+              <RouterLink
+                :to="{ name: 'profile', params: { id: user.id }, query: { tab: 'films' } }"
+                class="btn"
+              >
+                Films
+              </RouterLink>
+              <RouterLink
+                :to="{ name: 'profile', params: { id: user.id }, query: { tab: 'reviews' } }"
+                class="btn"
+              >
+                Reviews
+              </RouterLink>
+              <RouterLink
+                :to="{ name: 'profile', params: { id: user.id }, query: { tab: 'watchlist' } }"
+                class="btn"
+              >
+                Watchlist
+              </RouterLink>
 
               <button @click="handleLogout()" class="btn">Sign Out</button>
             </div>
@@ -246,6 +262,7 @@ img {
   display: none;
   white-space: nowrap;
   flex-direction: column;
+  gap: 4px;
   align-items: flex-start;
 }
 .toolBar > .btn {
@@ -254,7 +271,8 @@ img {
   text-align: left;
   padding: 4px 10px;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 15px;
+  font-family: var(--graphik-);
 }
 .toolBar > .btn:hover {
   background-color: var(--background-color2-);
@@ -332,6 +350,4 @@ img {
   font-weight: bold;
   padding: 8px 14px;
 }
-
-/* Sign Up Menu */
 </style>

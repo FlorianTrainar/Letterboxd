@@ -1,10 +1,11 @@
-<!-- components/UserInteractionForm.vue -->
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useAuth } from '@/assets/JS/useAuth'
 import axios from 'axios'
 
 import StarRating from './StarRating.vue'
+
+import { useAuth } from '@/assets/JS/useAuth'
+const { loggedIn, user, token } = useAuth()
 
 const props = defineProps({
   filmID: {
@@ -18,8 +19,10 @@ const props = defineProps({
     },
   },
 })
-
-const hasReview = ref(false)
+const emit = defineEmits(['showReviewForm'])
+const showReviewForm = () => {
+  emit('showReviewForm')
+}
 
 watch(
   () => props.reviewSaved,
@@ -30,20 +33,14 @@ watch(
   },
 )
 
-const emit = defineEmits(['showReviewForm'])
-
-const showReviewForm = () => {
-  emit('showReviewForm')
-}
-
-const { loggedIn, user, token } = useAuth()
-
-const rating = ref(0)
 const interactionId = ref(null)
-
 const currentInteraction = ref({})
 
-// ✅ Obtenir l'interaction existante à l'initialisation
+const hasReview = ref(false)
+const rating = ref(0)
+const manuallySetWatchedFalse = ref(false)
+
+// Obtenir l'interaction existante
 const getUserInteraction = async () => {
   if (!loggedIn.value) return
 
@@ -84,11 +81,10 @@ const getUserInteraction = async () => {
   }
 }
 
-// ✅ Fonction centrale de sauvegarde (POST ou PUT)
-const saveInteractionField = async (field, value) => {
+//  Sauvegarde de l'interaction (POST ou PUT)
+const saveInteractionField = async (field, value, forceWatched = false) => {
   if (!loggedIn.value) return
 
-  // Vérifier existence interaction si non déjà fait
   if (!interactionId.value) {
     try {
       const res = await axios.get(
@@ -126,7 +122,6 @@ const saveInteractionField = async (field, value) => {
 
   try {
     if (interactionId.value) {
-      // PUT
       await axios.put(
         `https://tranquil-confidence-b13331c5ed.strapiapp.com/api/interactions/${interactionId.value}`,
         payload,
@@ -135,7 +130,6 @@ const saveInteractionField = async (field, value) => {
         },
       )
     } else {
-      // POST
       const res = await axios.post(
         `https://tranquil-confidence-b13331c5ed.strapiapp.com/api/interactions`,
         payload,
@@ -150,40 +144,49 @@ const saveInteractionField = async (field, value) => {
     if (field === 'rate') rating.value = value
     if (field === 'review') hasReview.value = true
 
-    // ✅ Watched devient true automatiquement
-    if (field !== 'watched' && field !== 'watchlist' && !currentInteraction.value.watched) {
-      // ⚠️ Attendre avant d’appeler pour éviter les conflits
-      setTimeout(() => {
-        saveInteractionField('watched', true)
-      }, 100)
+    // ✅ Si ce n’est pas une mise à jour de watched ou watchlist
+    if (field !== 'watched' && field !== 'watchlist') {
+      if (!currentInteraction.value.watched && !manuallySetWatchedFalse.value) {
+        // 👉 L’utilisateur n’a pas bloqué watched, on le force à true
+        setTimeout(() => {
+          saveInteractionField('watched', true, true)
+        }, 100)
+      } else if (forceWatched) {
+        // ✅ Si on avait bloqué watched mais que l'utilisateur a recliqué sur like/rate
+        manuallySetWatchedFalse.value = false
+      }
     }
   } catch (err) {
     console.error(`Erreur saveInteractionField (${field}):`, err.response?.data || err)
   }
 }
 
-// ✅ Gestion du rating
-const saveRating = (newRating) => {
-  saveInteractionField('rate', newRating)
-}
+// BOUTONS
 
-// ✅ Gestion des boutons
-const watched = () => {
+const watched = async () => {
   const newValue = !currentInteraction.value.watched
-  saveInteractionField('watched', newValue)
-}
-const setWatchedTrue = () => {
-  if (!currentInteraction.value.watched) {
-    saveInteractionField('watched', true)
+
+  await saveInteractionField('watched', newValue)
+
+  if (!newValue) {
+    manuallySetWatchedFalse.value = true
+    await Promise.all([saveInteractionField('liked', false), saveInteractionField('rate', null)])
+  } else {
+    manuallySetWatchedFalse.value = false
   }
 }
 const liked = () => {
   const newValue = !currentInteraction.value.liked
+  manuallySetWatchedFalse.value = false
   saveInteractionField('liked', newValue)
 }
 const watchList = () => {
   const newValue = !currentInteraction.value.watchlist
   saveInteractionField('watchlist', newValue)
+}
+const saveRating = (newRating) => {
+  manuallySetWatchedFalse.value = false
+  saveInteractionField('rate', newRating)
 }
 onMounted(getUserInteraction)
 </script>

@@ -1,18 +1,28 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
-import { RouterLink } from 'vue-router'
+import { onMounted, ref, computed, watch } from 'vue'
+
+import { RouterLink, useRoute } from 'vue-router'
+const route = useRoute()
 
 import axios from 'axios'
 
 import { useAuth } from '@/assets/JS/useAuth'
 const { user, token } = useAuth()
 
-import { useLoading } from '@/assets/JS/useLoading'
-const { isLoading: displayLoadingMessage, loadingMessage, startLoading, stopLoading } = useLoading()
-
 import { starIcon } from '@/assets/JS/starIcon'
 
+const strapiLoading = ref(false)
+const displayLoadingMessage = ref(false)
+
 const activeTab = ref('profile')
+const syncActiveTabFromRoute = () => {
+  const tabParam = route.query.tab
+  if (['profile', 'films', 'watchlist', 'reviews'].includes(tabParam)) {
+    activeTab.value = tabParam
+  } else {
+    activeTab.value = 'profile'
+  }
+}
 
 const likedMovies = ref([])
 const likedMoviesInfo = ref([])
@@ -146,7 +156,19 @@ async function fetchMoviesInfo(movieIds) {
 }
 
 onMounted(async () => {
-  startLoading()
+  strapiLoading.value = true
+  // Retarde l’affichage du message (ex: 1.5s)
+  const delay = 1500
+  const timeout = setTimeout(() => {
+    if (strapiLoading.value) {
+      displayLoadingMessage.value = true
+    }
+  }, delay)
+
+  syncActiveTabFromRoute()
+  watch(() => route.query.tab, syncActiveTabFromRoute)
+
+  console.log(activeTab.value)
 
   if (!user.value || !token.value) return
 
@@ -234,15 +256,25 @@ onMounted(async () => {
     console.log('Distribution des notes (1ère page) :', ratedMoviesDistribution.value)
   } catch (err) {
     console.error('Erreur lors de la récupération des interactions :', err)
-  } finally {
-    stopLoading()
   }
+
+  strapiLoading.value = false
+  clearTimeout(timeout)
+  displayLoadingMessage.value = false
 })
 </script>
 
 <template>
   <main>
-    <div class="headerBackground"></div>
+    <div class="headerBackground">
+      <div v-if="displayLoadingMessage" class="loadingBanner">
+        <font-awesome-icon :icon="['fas', 'triangle-exclamation']" />
+        <div>
+          <p>Le serveur est en cours de chargement</p>
+          <p>Merci de patienter quelques instants</p>
+        </div>
+      </div>
+    </div>
 
     <div class="wrapper">
       <section class="profileHeader">
@@ -271,18 +303,24 @@ onMounted(async () => {
         </div>
       </section>
       <section class="tabSelector">
-        <button @click="activeTab = 'profile'">Profile</button>
-        <button @click="activeTab = 'films'">Films</button>
-        <button @click="activeTab = 'reviews'">Reviews</button>
-        <button @click="activeTab = 'watchlist'">Watchlist</button>
-        <button @click="activeTab = 'likes'">Likes</button>
+        <button @click="activeTab = 'profile'" :class="{ active: activeTab === 'profile' }">
+          Profile
+        </button>
+        <button @click="activeTab = 'films'" :class="{ active: activeTab === 'films' }">
+          Films
+        </button>
+        <button @click="activeTab = 'reviews'" :class="{ active: activeTab === 'reviews' }">
+          Reviews
+        </button>
+        <button @click="activeTab = 'watchlist'" :class="{ active: activeTab === 'watchlist' }">
+          Watchlist
+        </button>
+        <button @click="activeTab = 'likes'" :class="{ active: activeTab === 'likes' }">
+          Likes
+        </button>
       </section>
 
-      <div class="pageLoader" v-if="displayLoadingMessage">
-        <h1>{{ loadingMessage }}</h1>
-      </div>
-
-      <div class="mainZone" v-else>
+      <div class="mainZone" v-if="!displayLoadingMessage">
         <div v-if="activeTab === 'profile'" class="tabContent profileTab">
           <section class="profileWatchlist">
             <h3 class="sectionTitle">WATCHLIST</h3>
@@ -606,6 +644,9 @@ onMounted(async () => {
 }
 .tabSelector > button:hover {
   color: var(--blue-);
+}
+.tabSelector > button.active {
+  color: var(--font-color1-);
 }
 /*  */
 .mainZone {
