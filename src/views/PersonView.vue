@@ -6,7 +6,7 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 import { useLoading } from '@/assets/JS/useLoading'
-const { isLoading: displayLoadingMessage, loadingMessage, startLoading, stopLoading } = useLoading()
+const { isLoading: showLoadingMessage, startLoading, stopLoading } = useLoading()
 
 const personId = route.params.id
 
@@ -159,8 +159,8 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div class="pageLoader" v-if="displayLoadingMessage">
-            <h2>{{ loadingMessage }}</h2>
+          <div v-if="showLoadingMessage" class="pageLoader">
+            <font-awesome-icon icon="spinner" spin />
           </div>
 
           <div class="movieList">

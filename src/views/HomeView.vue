@@ -10,7 +10,7 @@ import { fakeReviews } from '@/assets/JS/reviewSample'
 import { starIcon } from '@/assets/JS/starIcon'
 
 import { useLoading } from '@/assets/JS/useLoading'
-const { isLoading: displayLoadingMessage, loadingMessage, startLoading, stopLoading } = useLoading()
+const { isLoading: showLoadingMessage, startLoading, stopLoading } = useLoading()
 
 import { useAuth } from '@/assets/JS/useAuth'
 const { loggedIn, user } = useAuth()
@@ -68,8 +68,8 @@ onMounted(async () => {
         <h2>Here's what we've been watching...</h2>
       </div>
 
-      <div class="pageLoader" v-if="displayLoadingMessage">
-        <h2>{{ loadingMessage }}</h2>
+      <div v-if="showLoadingMessage" class="pageLoader">
+        <font-awesome-icon icon="spinner" spin />
       </div>
 
       <section class="bigCardsSection">

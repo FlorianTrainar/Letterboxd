@@ -6,7 +6,7 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 import { useLoading } from '@/assets/JS/useLoading'
-const { isLoading: displayLoadingMessage, loadingMessage, startLoading, stopLoading } = useLoading()
+const { isLoading: showLoadingMessage, startLoading, stopLoading } = useLoading()
 
 const query = ref(route.query.q || '')
 const results = ref([])
@@ -131,8 +131,8 @@ watch(
   <main>
     <div class="headerBackground"></div>
     <div class="wrapper">
-      <div class="pageLoader" v-if="displayLoadingMessage">
-        <h1>{{ loadingMessage }}</h1>
+      <div v-if="showLoadingMessage" class="pageLoader">
+        <font-awesome-icon icon="spinner" spin />
       </div>
 
       <section class="resultSec">
@@ -145,7 +145,7 @@ watch(
           <button @click="filter = 'all'" :class="{ active: filter === 'all' }">ALL</button>
         </div>
 
-        <div v-if="results.length === 0">Aucun résultat trouvé...</div>
+        <div class="pageLoader" v-if="!results.length">Aucun résultat trouvé...</div>
 
         <div class="mainZone" v-else>
           <div class="movieBlock" v-for="item in filteredResults" :key="item.id + '-' + item.type">

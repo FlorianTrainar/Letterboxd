@@ -14,7 +14,7 @@ import { useModalStore } from '@/assets/JS/modalStore'
 const modalStore = useModalStore()
 
 import { useLoading } from '@/assets/JS/useLoading'
-const { isLoading: displayLoadingMessage, loadingMessage, startLoading, stopLoading } = useLoading()
+const { isLoading: showLoadingMessage, startLoading, stopLoading } = useLoading()
 
 import { starIcon } from '@/assets/JS/starIcon'
 
@@ -144,11 +144,11 @@ const finalRevenue = computed(() => {
         :alt="movieInfos.title"
       />
     </div>
-    <div class="wrapper">
-      <div class="pageLoader" v-if="displayLoadingMessage">
-        <h2>{{ loadingMessage }}</h2>
-      </div>
 
+    <div v-if="showLoadingMessage" class="pageLoader">
+      <font-awesome-icon icon="spinner" spin />
+    </div>
+    <div v-else class="wrapper">
       <div class="posterZone">
         <img
           v-if="movieInfos && movieInfos.poster_path"

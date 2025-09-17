@@ -11,8 +11,8 @@ const { user, token } = useAuth()
 
 import { starIcon } from '@/assets/JS/starIcon'
 
-const strapiLoading = ref(false)
-const displayLoadingMessage = ref(false)
+import { useLoading } from '@/assets/JS/useLoading'
+const { showLoadingMessage, showStrapiLoadingMessage, startLoading, stopLoading } = useLoading()
 
 const activeTab = ref('profile')
 const syncActiveTabFromRoute = () => {
@@ -156,14 +156,7 @@ async function fetchMoviesInfo(movieIds) {
 }
 
 onMounted(async () => {
-  strapiLoading.value = true
-  // Retarde l’affichage du message (ex: 1.5s)
-  const delay = 1500
-  const timeout = setTimeout(() => {
-    if (strapiLoading.value) {
-      displayLoadingMessage.value = true
-    }
-  }, delay)
+  startLoading()
 
   syncActiveTabFromRoute()
   watch(() => route.query.tab, syncActiveTabFromRoute)
@@ -258,17 +251,17 @@ onMounted(async () => {
     console.error('Erreur lors de la récupération des interactions :', err)
   }
 
-  strapiLoading.value = false
-  clearTimeout(timeout)
-  displayLoadingMessage.value = false
+  stopLoading()
 })
 </script>
 
 <template>
   <main>
     <div class="headerBackground">
-      <div v-if="displayLoadingMessage" class="loadingBanner">
+      <div v-if="showStrapiLoadingMessage" class="loadingBanner">
+        <font-awesome-icon icon="spinner" spin />
         <font-awesome-icon :icon="['fas', 'triangle-exclamation']" />
+
         <div>
           <p>Le serveur est en cours de chargement</p>
           <p>Merci de patienter quelques instants</p>
@@ -320,7 +313,10 @@ onMounted(async () => {
         </button>
       </section>
 
-      <div class="mainZone" v-if="!displayLoadingMessage">
+      <div v-if="showLoadingMessage" class="pageLoader">
+        <font-awesome-icon icon="spinner" spin />
+      </div>
+      <div v-else class="mainZone">
         <div v-if="activeTab === 'profile'" class="tabContent profileTab">
           <section class="profileWatchlist">
             <h3 class="sectionTitle">WATCHLIST</h3>

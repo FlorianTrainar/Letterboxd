@@ -1,24 +1,32 @@
 // src/assets/JS/useLoading.js
 import { ref } from 'vue'
 
-export function useLoading() {
-  const isLoading = ref(false)
-  const loadingMessage = ref(
-    'Veuillez patienter, le chargement de cette page peut prendre quelques secondes.',
-  )
+export function useLoading(delay = 1500) {
+  const showLoadingMessage = ref(false) // ⬅️ toujours immédiat
+  const showStrapiLoadingMessage = ref(false) // ⬅️ après délai
 
-  function startLoading(message = null) {
-    if (message) loadingMessage.value = message
-    isLoading.value = true
+  let timeoutId = null
+
+  function startLoading() {
+    showLoadingMessage.value = true
+    showStrapiLoadingMessage.value = false
+
+    timeoutId = setTimeout(() => {
+      // Si le chargement dure longtemps, on affiche le message différé
+      showStrapiLoadingMessage.value = true
+    }, delay)
   }
 
   function stopLoading() {
-    isLoading.value = false
+    showLoadingMessage.value = false
+    showStrapiLoadingMessage.value = false
+    clearTimeout(timeoutId)
   }
 
   return {
-    isLoading,
-    loadingMessage,
+    showLoadingMessage,
+    showStrapiLoadingMessage,
+    // loadingMessage,
     startLoading,
     stopLoading,
   }

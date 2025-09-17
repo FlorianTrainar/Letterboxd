@@ -25,6 +25,7 @@ import {
   faChevronDown,
   faClock as fasClock,
   faWarning,
+  faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faStar as faStarRegular,
@@ -51,6 +52,7 @@ library.add(
   fasClock,
   farClock,
   faWarning,
+  faSpinner,
 )
 
 const app = createApp(App).component('font-awesome-icon', FontAwesomeIcon)
