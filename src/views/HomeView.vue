@@ -63,7 +63,7 @@ onMounted(async () => {
     <div class="wrapper">
       <div v-if="loggedIn" class="greetings">
         <h1>
-          Welcome back <span>{{ user.username }} !</span>
+          Welcome <span>{{ user.username }} </span> !
         </h1>
         <h2>Here's what we've been watching...</h2>
       </div>

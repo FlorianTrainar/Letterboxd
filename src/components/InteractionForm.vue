@@ -7,6 +7,9 @@ import StarRating from './StarRating.vue'
 import { useAuth } from '@/assets/JS/useAuth'
 const { loggedIn, user, token } = useAuth()
 
+import { useLoading } from '@/assets/JS/useLoading'
+const { showStrapiLoadingMessage, startLoading, stopLoading } = useLoading()
+
 const props = defineProps({
   filmID: {
     type: [Number, String],
@@ -44,6 +47,8 @@ const manuallySetWatchedFalse = ref(false)
 const getUserInteraction = async () => {
   if (!loggedIn.value) return
 
+  startLoading()
+
   try {
     const res = await axios.get(
       'https://tranquil-confidence-b13331c5ed.strapiapp.com/api/interactions',
@@ -78,6 +83,8 @@ const getUserInteraction = async () => {
     }
   } catch (err) {
     console.error('Erreur getUserInteraction:', err)
+  } finally {
+    stopLoading()
   }
 }
 
@@ -192,7 +199,21 @@ onMounted(getUserInteraction)
 </script>
 
 <template>
-  <div class="interactionForm">
+  <div v-if="showStrapiLoadingMessage" class="loadingBanner">
+    <font-awesome-icon icon="spinner" spin />
+    <font-awesome-icon :icon="['fas', 'triangle-exclamation']" />
+
+    <div>
+      <p>Le serveur est en cours de chargement</p>
+      <p>Merci de patienter quelques instants</p>
+    </div>
+  </div>
+
+  <div v-if="showStrapiLoadingMessage" class="interactionFormLoader">
+    <font-awesome-icon icon="spinner" spin />
+  </div>
+
+  <div v-else class="interactionForm">
     <div class="interactZone">
       <div>
         <button @click="watched" class="watchBtn" :class="{ active: currentInteraction.watched }">
@@ -238,6 +259,15 @@ onMounted(getUserInteraction)
 </template>
 
 <style scoped>
+.interactionFormLoader {
+  background-color: var(--background-color2-);
+  color: var(--orange-);
+  font-size: 20px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+}
 .interactionForm {
   display: flex;
   flex-direction: column;
@@ -245,6 +275,7 @@ onMounted(getUserInteraction)
   margin-bottom: 25px;
   border-radius: 20px;
   width: 250px;
+  position: relative;
 }
 .interactionForm > div {
   background-color: var(--background-color2-);
@@ -307,5 +338,10 @@ onMounted(getUserInteraction)
 }
 .interactionForm > .rateZone svg {
   font-size: 26px;
+}
+
+.loadingBanner {
+  top: 75px;
+  left: 0vw;
 }
 </style>

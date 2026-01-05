@@ -1,10 +1,8 @@
 @import './base.css';
-
 * {
   box-sizing: border-box;
   font-family: 'graphik', sans-serif;
 }
-
 :root {
   --background-color1-: #14191d;
   --background-color2-: #445566;
@@ -23,6 +21,7 @@
   --graphik-: 'graphik', sans-serif;
   --tiempos-: 'tiempos', sans-serif;
 }
+
 .tiempo {
   font-family: var(--tiempos-);
 }

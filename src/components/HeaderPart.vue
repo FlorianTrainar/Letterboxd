@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, useRouter } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useModalStore } from '@/assets/JS/modalStore'
 
 import { useAuth } from '@/assets/JS/useAuth'
@@ -11,9 +11,16 @@ const modalStore = useModalStore()
 
 const { loggedIn, login, logout, user } = useAuth()
 
-const username = ref('')
-const password = ref('')
-const isSubmitting = ref(false)
+import { useLoading } from '@/assets/JS/useLoading'
+const { showStrapiLoadingMessage, startLoading, stopLoading } = useLoading()
+
+const showAlert = () => {
+  alert("Cette fonctionnalité n'est pas encore disponible.")
+}
+
+const username = ref('Test')
+const password = ref('Azerty1234')
+
 const errorMessage = ref('')
 
 const searchQuery = ref('')
@@ -26,11 +33,11 @@ function submitSearch() {
 }
 
 const handleSubmit = async () => {
+  startLoading()
   console.log('submit', {
     username: username.value,
     password: password.value,
   })
-  isSubmitting.value = true
   if (username.value && password.value) {
     try {
       const response = await axios.post(
@@ -61,7 +68,7 @@ const handleSubmit = async () => {
     errorMessage.value = 'Veuillez remplir tous les champs'
   }
 
-  isSubmitting.value = false
+  stopLoading()
 }
 
 const handleLogout = () => {
@@ -71,15 +78,22 @@ const handleLogout = () => {
 </script>
 <template>
   <header>
+    <div v-if="showStrapiLoadingMessage" class="loadingBanner">
+      <font-awesome-icon icon="spinner" spin />
+      <font-awesome-icon :icon="['fas', 'triangle-exclamation']" />
+
+      <div>
+        <p>Le serveur est en cours de chargement</p>
+        <p>Merci de patienter quelques instants</p>
+      </div>
+    </div>
+
     <div class="wrapper">
       <RouterLink :to="{ name: 'home' }">
         <img src="@/assets/imgs/letterboxd-vector-logo-cutout.png" />
       </RouterLink>
 
       <div class="headerMenu" v-if="!modalStore.showLoginForm">
-        <button v-if="!loggedIn" @click="modalStore.openLogin">SIGN IN</button>
-        <button v-if="!loggedIn" @click="modalStore.openSignup">CREATE ACCOUNT</button>
-
         <div v-if="loggedIn">
           <div class="userInfo">
             <div class="userIcon">
@@ -115,13 +129,15 @@ const handleLogout = () => {
               <button @click="handleLogout()" class="btn">Sign Out</button>
             </div>
           </div>
-          <font-awesome-icon :icon="['fas', 'bolt']" />
         </div>
 
-        <p>FILMS</p>
-        <p>LISTS</p>
-        <p>MEMBERS</p>
-        <p>JOURNAL</p>
+        <button v-if="!loggedIn" @click="modalStore.openLogin">SIGN IN</button>
+        <button v-if="!loggedIn" @click="modalStore.openSignup">CREATE ACCOUNT</button>
+
+        <button class="workInProgress" @click="showAlert">FILMS</button>
+        <button class="workInProgress" @click="showAlert">LISTS</button>
+        <button class="workInProgress" @click="showAlert">MEMBERS</button>
+        <button class="workInProgress" @click="showAlert">JOURNAL</button>
         <form
           class="searchInput"
           :class="{ focused: isSearchFocused }"
@@ -182,18 +198,18 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  color: var(--font-color2-);
+  gap: 2px;
 }
 
-.headerMenu p {
+.headerMenu button {
   font-size: 15px;
+  color: var(--font-color2-);
   font-family: var(--graphik-);
   font-weight: bold;
-}
-.headerMenu button {
   background: none;
-  color: var(--font-color1-);
+}
+.headerMenu > .workInProgress {
+  color: var(--font-color3-);
 }
 
 /*  */
@@ -233,10 +249,13 @@ img {
 .userInfo {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 4px 6px;
   border-radius: 4px 4px 0 0;
   position: relative;
+  font-family: var(--graphik-);
+  font-weight: bold;
+  color: var(--font-color2-);
 }
 .userInfo > svg {
   align-self: center;
@@ -349,5 +368,9 @@ img {
   color: var(--font-color1-);
   font-weight: bold;
   padding: 8px 14px;
+}
+
+button:hover {
+  color: var(--font-color1-);
 }
 </style>

@@ -12,7 +12,6 @@ export function useSignup() {
 
   const signup = async ({ username, email, password }) => {
     isSubmitting.value = true
-    errorMessage.value = ''
 
     try {
       const response = await axios.post(

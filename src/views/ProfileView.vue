@@ -320,6 +320,9 @@ onMounted(async () => {
         <div v-if="activeTab === 'profile'" class="tabContent profileTab">
           <section class="profileWatchlist">
             <h3 class="sectionTitle">WATCHLIST</h3>
+            <p class="emptySection" v-if="watchlistMovies.length === 0">
+              Films you add in your watchlist will be added here
+            </p>
             <div class="bigCardsSection">
               <RouterLink
                 :to="{ name: 'movie', params: { id: movie.id } }"
@@ -334,11 +337,13 @@ onMounted(async () => {
                 <div class="tooltip">{{ movie.title }}</div>
               </RouterLink>
             </div>
-            <div></div>
           </section>
 
           <section class="profileReviewSection">
             <h3 class="sectionTitle">RECENT REVIEWS</h3>
+            <p class="emptySection" v-if="reviewedMovies.length === 0">
+              Your reviews will be added here
+            </p>
             <div
               class="profileReview"
               v-for="movie in reviewsWithMovieInfo.slice(0, 3)"
@@ -385,6 +390,9 @@ onMounted(async () => {
 
           <section class="profileLikes">
             <h3 class="sectionTitle">RECENT LIKES</h3>
+            <p class="emptySection" v-if="likedMovies.length === 0">
+              Films you like will be added here
+            </p>
             <div class="bigCardsSection">
               <RouterLink
                 :to="{ name: 'movie', params: { id: movie.id } }"
@@ -409,6 +417,7 @@ onMounted(async () => {
               <span class="tiempo">{{ watchedMovies.length }}</span>
               FILMS WATCHED
             </h3>
+
             <div class="smallCardsSection">
               <div class="card smallCard" v-for="movie in watchedMoviesInfo" :key="movie.id">
                 <RouterLink :to="{ name: 'movie', params: { id: movie.id } }">
@@ -425,7 +434,9 @@ onMounted(async () => {
 
         <div v-if="activeTab === 'reviews'" class="tabContent reviewsTab">
           <section>
-            <h3 class="sectionTitle">YOUR REVIEWS</h3>
+            <h3 class="sectionTitle">
+              <span class="tiempo">{{ reviewedMovies.length }}</span> REVIEWS
+            </h3>
             <div
               class="profileReview"
               v-for="movie in reviewsWithMovieInfo.slice(0, 10)"
@@ -493,7 +504,7 @@ onMounted(async () => {
         <div v-if="activeTab === 'likes'" class="tabContent likesTab">
           <section>
             <h3 class="sectionTitle">
-              <span>{{ likedMovies.length }}</span> FILMS YOU LIKED
+              <span class="tiempo">{{ likedMovies.length }}</span> FILMS YOU LIKED
             </h3>
             <div class="smallCardsSection">
               <div class="card smallCard" v-for="movie in likedMoviesInfo" :key="movie.id">
@@ -654,6 +665,10 @@ onMounted(async () => {
   width: 67%;
 }
 /* profile */
+.emptySection {
+  color: var(--green-);
+}
+
 .profileReview {
   display: flex;
   gap: 20px;

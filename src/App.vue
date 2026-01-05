@@ -1,6 +1,7 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import HeaderPart from './components/HeaderPart.vue'
+import FooterPart from './components/FooterPart.vue'
 
 import SignupPart from './components/SignupPart.vue'
 import { useModalStore } from './assets/JS/modalStore'
@@ -11,8 +12,8 @@ const modalStore = useModalStore()
 <template>
   <HeaderPart />
   <RouterView />
+  <FooterPart />
 
-  <!-- SignupPart toujours dispo, mais visible uniquement si activé -->
   <div>
     <div v-if="modalStore.showSignupForm" class="formOverlay"></div>
     <div class="formWrapper">
