@@ -51,4 +51,13 @@ span:hover {
   cursor: pointer;
   color: var(--blue-);
 }
+
+@media (max-width: 600px) {
+  h3 {
+    font-size: 16px;
+  }
+  a {
+    font-size: 10px;
+  }
+}
 </style>

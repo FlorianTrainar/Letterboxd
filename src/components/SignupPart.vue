@@ -227,4 +227,11 @@ form > button {
   padding: 6px 12px;
   margin-top: 20px;
 }
+
+/* ---- */
+/* Media QUerries */
+/* ---- */
+
+@media (max-width: 600px) {
+}
 </style>

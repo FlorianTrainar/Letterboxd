@@ -21,9 +21,12 @@ const modalStore = useModalStore()
 <style scoped>
 .cover {
   height: 720px;
+  width: 90%;
+  position: relative;
 }
 .greeting {
   position: absolute;
+  width: 100%;
   bottom: 0px;
   left: 50%;
   transform: translateX(-50%);
@@ -44,4 +47,14 @@ const modalStore = useModalStore()
   border: none;
   margin: 25px 0;
 } /* ---- */
+
+/* ---- */
+/* Media QUerries */
+/* ---- */
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 22px;
+  }
+}
 </style>

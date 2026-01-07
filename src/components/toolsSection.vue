@@ -63,4 +63,31 @@ section > div {
 .toolCard svg {
   font-size: 30px;
 }
+
+/* ---- */
+/* Media QUerries */
+/* ---- */
+
+@media (max-width: 1020px) {
+  section > div {
+    justify-content: center;
+    gap: 10px;
+  }
+  .toolCard {
+    position: relative;
+    gap: 12px;
+    width: 45%;
+    padding: 15px;
+    padding-bottom: 24px;
+  }
+  .toolCard > p {
+    font-size: 14px;
+  }
+  .toolCard > svg {
+    font-size: 22px;
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+  }
+}
 </style>

@@ -323,4 +323,21 @@ onMounted(async () => {
 }
 
 /* --- */
+
+/* ---- */
+/* Media QUerries */
+/* ---- */
+
+@media (max-width: 1020px) {
+  .smallCardsSection > .cards {
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    padding: 0 10px;
+  }
+  .smallCardsSection .card {
+    width: 80px;
+    height: 115px;
+  }
+}
 </style>

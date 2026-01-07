@@ -373,4 +373,23 @@ img {
 button:hover {
   color: var(--font-color1-);
 }
+
+/* ---- */
+/* Media QUerries */
+/* ---- */
+
+@media (max-width: 1020px) {
+  .headerMenu {
+    width: 90%;
+  }
+}
+
+@media (max-width: 600px) {
+  .workInProgress {
+    display: none;
+  }
+  img {
+    display: none;
+  }
+}
 </style>
